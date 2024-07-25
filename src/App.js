@@ -1,5 +1,7 @@
 import './App.css';
 import React, { useEffect, useState } from 'react'
+import About from './components/about';
+import Experiance from './components/experiance';
 
 function App() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -38,7 +40,7 @@ function App() {
                   </p>
                   <nav class="nav hidden lg:block" aria-label="In-page jump links">
                     <ul class="mt-16 w-max">
-                      <li><a class="group flex items-center py-3 active" href="#about">
+                      <li><a class="group flex items-center py-3 active" href="/">
                         <span class="nav-indicator mr-4 h-px w-8 bg-slate-600 transition-all group-hover:w-16 group-hover:bg-slate-200 group-focus-visible:w-16 group-focus-visible:bg-slate-200 motion-reduce:transition-none"></span>
                         <span class="nav-text text-xs font-bold uppercase tracking-widest text-slate-500 group-hover:text-slate-200 group-focus-visible:text-slate-200">About</span>
                       </a></li>
@@ -75,27 +77,16 @@ function App() {
 
                 </ul>
               </header>
-              <main className='pt-24 lg:w-7/12 h-full lg:py-24 overflow-y-auto transition duration-300' style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                <div>
-                  <section id='about'>
-                    <p>
-                      Hello! I'm Jayakumar, a dedicated full-stack developer at Why Global Service, passionate about creating intuitive and engaging web applications. At Why Global Service, I work on live projects, focusing on UI, UX, frontend development, and app development. Utilizing technologies such as React, Tailwind CSS, Node.js, and MongoDB, I build responsive and visually appealing web applications. Collaborating with cross-functional teams, I strive to deliver seamless digital solutions.
-
-                      Driven by the challenge of transforming complex ideas into simple, elegant designs, I am committed to continuous learning and growth in the dynamic field of web development. I welcome connections with like-minded professionals and potential collaborators.
-                    </p>
+              <main className='pt-24 lg:px-6 lg:w-7/12 h-full lg:py-24 overflow-y-auto transition duration-300' style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  <section id='/'>
+                    <About/>
                   </section>
-
-                  <p>
-                    Hello! I'm Jayakumar, a dedicated full-stack developer at Why Global Service, passionate about creating intuitive and engaging web applications. At Why Global Service, I work on live projects, focusing on UI, UX, frontend development, and app development. Utilizing technologies such as React, Tailwind CSS, Node.js, and MongoDB, I build responsive and visually appealing web applications. Collaborating with cross-functional teams, I strive to deliver seamless digital solutions.
-
-                    Driven by the challenge of transforming complex ideas into simple, elegant designs, I am committed to continuous learning and growth in the dynamic field of web development. I welcome connections with like-minded professionals and potential collaborators.
-                  </p>
-                  <p>
-                    Hello! I'm Jayakumar, a dedicated full-stack developer at Why Global Service, passionate about creating intuitive and engaging web applications. At Why Global Service, I work on live projects, focusing on UI, UX, frontend development, and app development. Utilizing technologies such as React, Tailwind CSS, Node.js, and MongoDB, I build responsive and visually appealing web applications. Collaborating with cross-functional teams, I strive to deliver seamless digital solutions.
-
-                    Driven by the challenge of transforming complex ideas into simple, elegant designs, I am committed to continuous learning and growth in the dynamic field of web development. I welcome connections with like-minded professionals and potential collaborators.
-                  </p>
-                </div>
+                  <section id='experience' className='mt-4'>
+                    <Experiance/>
+                  </section>
+                  <section id='experience' className='mt-4'>
+                    <Experiance/>
+                  </section>
               </main>
             </div>
           </div>
