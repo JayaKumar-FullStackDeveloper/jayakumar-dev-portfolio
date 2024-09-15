@@ -24,21 +24,21 @@ function ProjectsPage() {
   ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Projects</h1>
-      <ul className="space-y-4">
+    <div className="pb-2">
+      <h1 className="text-xl font-bold mb-4">Projects</h1>
+      <ul className="space-y-2">
         {projects.map((project, index) => (
           <li
             key={index}
             className="group relative grid transition-all sm:grid-cols-8 sm:gap-8 md:gap-4 p-4 rounded-lg overflow-hidden"
           >
-            <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden transition motion-reduce:transition-none lg:-inset-x-6 lg:block lg:group-hover:bg-slate-800/50 lg:group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:group-hover:drop-shadow-lg"></div>
+            <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden transition motion-reduce:transition-none lg:-inset-x-6 lg:block lg:group-hover:bg-slate-600/15 lg:group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:group-hover:drop-shadow-lg"></div>
             <img
               src={project.thumbnail}
               alt={project.title}
-              className="z-10 sm:col-span-2 w-full h-full object-cover rounded-lg"
+              className="z-10 sm:col-span-3 w-full h-full object-cover rounded-md"
             />
-            <div className="z-10 sm:col-span-6">
+            <div className="z-10 sm:col-span-5">
               <h3 className="font-medium leading-snug text-slate-200">
                 <div>
                   <Link
