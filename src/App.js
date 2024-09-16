@@ -137,8 +137,8 @@ function App() {
                     }}
                   >
                     <span
-                      className={`nav-indicator mr-4 h-px w-8 transition-all ${
-                        activeSection === item.id ? "w-20 bg-slate-200" : "bg-slate-600"
+                      className={`nav-indicator mr-4 h-px transition-all ${
+                        activeSection === item.id ? "w-8 bg-slate-200" : "bg-slate-600 w-4"
                       }`}
                     ></span>
                     <span
