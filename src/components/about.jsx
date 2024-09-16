@@ -2,10 +2,7 @@ import React from 'react'
 
 function About() {
   return (
-    <div className="select-none">
-      <div className="sticky top-0 z-10">
-        <h1 className="text-xl lg:hidden text-slate-200 font-bold my-4">About</h1>
-      </div>
+    <div className="select-none  sm:z-20">
       <p className='text-justify text-sm font-medium leading-5.5 pb-2'>
         Hi! I am Jayakumar, and I am a Full Stack Developer specializing in React.js development. 
         I completed my Bachelor's degree in Computer 

@@ -5,19 +5,19 @@ function ProjectsPage() {
   const projects = [
     {
       title: 'Why Weds: Wedding Events Arrangements - Web Application Development',
-      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', // Replace with the actual path to the thumbnail image
+      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', 
       platform: 'React, HTML5, JS, Tailwind CSS, Node and Express, MongoDB',
       link: '/projects/why-weds',
     },
     {
       title: 'Laya: Skin and Hair Care E-Commerce Web Application Development',
-      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', // Replace with the actual path to the thumbnail image
+      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', 
       platform: 'React, HTML5, JS, Tailwind CSS, Node and Express, MongoDB',
       link: '/projects/laya',
     },
     {
       title: 'Nalaiya Thiran Project: ICT Academy-IBM: Plasma Donor Application - Cloud web Application Development',
-      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', // Replace with the actual path to the thumbnail image
+      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', 
       platform: 'Python Flask Framework, HTML5, CSS, JS, IBM Db2, Jira, SendGrid',
       link: '/projects/nalaiya-thiran',
     },
@@ -25,7 +25,6 @@ function ProjectsPage() {
 
   return (
     <div className="pb-2">
-      <h1 className="text-xl font-bold mb-4">Projects</h1>
       <ul className="space-y-2">
         {projects.map((project, index) => (
           <li
@@ -36,7 +35,7 @@ function ProjectsPage() {
             <img
               src={project.thumbnail}
               alt={project.title}
-              className="z-10 sm:col-span-3 w-full h-full object-cover rounded-md"
+              className="z-10 sm:col-span-3 w-full h-30 object-cover rounded-sm"
             />
             <div className="z-10 sm:col-span-5">
               <h3 className="font-medium leading-snug text-slate-200">
@@ -46,8 +45,8 @@ function ProjectsPage() {
                     to={project.link}
                     aria-label={project.title}
                   >
-                    <span className="absolute -inset-x-4 -inset-y-2.5 hidden rounded md:-inset-x-6 md:-inset-y-4 lg:block"></span>
-                    <span>{project.title}</span>
+                    <span className="absolute -inset-x-4 -inset-y-2.5 hidden rounded md:-inset-x-6 md:-inset-y-4 sm:-inset-y-6 lg:block "></span>
+                    <span >{project.title}</span>
                   </Link>
                 </div>
               </h3>

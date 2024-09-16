@@ -14,7 +14,7 @@ function App() {
   const menuButtonRef = useRef(null); // Ref for the menu button
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    setIsMenuOpen((prevState) => !prevState);
   };
 
   const handleClickOutside = (event) => {
@@ -89,6 +89,13 @@ function App() {
     background: `radial-gradient(500px at ${position.x}px ${position.y}px, rgba(29, 78, 216, 0.15), transparent 80%)`,
   };
 
+  const menuItems = [
+    { id: "/", label: "JK ! Dev" },
+    { id: "experience", label: "Experience" },
+    { id: "projects", label: "Projects" },
+    { id: "contact", label: "Contact" },
+  ];
+
   return (
     <div className="bg-slate-900 leading-relaxed text-slate-400 antialiased selection:bg-teal-300 selection:text-teal-900 lg:w-screen lg:h-screen sm:h-full">
       <div className="relative lg:w-full sm:w-screen h-full">
@@ -96,30 +103,60 @@ function App() {
           className="absolute inset-0 z-0 transition duration-300"
           style={gradientStyle}
         ></div>
+         {/* Mobile Header */}
+         <div className="w-full bg-slate-900 lg:hidden fixed top-0 py-2 px-6 z-40">
+          <button
+            className="text-slate-600 flex justify-between w-full"
+            onClick={toggleMenu}
+            aria-expanded={isMenuOpen}
+            aria-label="Toggle navigation menu"
+            ref={menuButtonRef}
+          >
+             <h2 className="text-lg font-medium tracking-tight text-slate-200 sm:text-xl">{menuItems.find((item) => item.id === activeSection)?.label || "Jayakumar"}</h2>            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Dropdown Menu for Small Screens */}
+        {isMenuOpen && (
+          <nav ref={menuRef} className="lg:hidden fixed top-10 right-0 w-full bg-slate-900 shadow-md z-40">
+            <ul className="flex flex-col mt-2">
+              {[
+                { id: "/", label: "About" },
+                { id: "experience", label: "Experience" },
+                { id: "projects", label: "Projects" },
+                { id: "contact", label: "Contact" },
+              ].map((item) => (
+                <li key={item.id} className="border-b border-gray-200">
+                  <button
+                    className={`group flex items-center py-3 px-4 w-full text-left ${activeSection === item.id ? "active" : ""}`}
+                    onClick={() => {
+                      handleNavClick(item.id);
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <span
+                      className={`nav-indicator mr-4 h-px w-8 transition-all ${
+                        activeSection === item.id ? "w-20 bg-slate-200" : "bg-slate-600"
+                      }`}
+                    ></span>
+                    <span
+                      className={`nav-text text-xs font-bold uppercase tracking-widest transition-all ${
+                        activeSection === item.id ? "text-slate-200" : "text-slate-500"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
         <div className="relative z-10 mx-auto max-w-screen-xl px-6 py-12 font-sans md:px-12 md:py-20 lg:px-20 lg:py-0 h-full">
-            <div className="sticky top-1">
-              <button
-                className="lg:hidden absolute top-0 right-4 p-2 text-slate-600 bg-transparent"
-                onClick={toggleMenu}
-                aria-label="Toggle navigation menu"
-              >
-                <svg
-                  className="w-7 h-7"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-              </button></div>
           <div className="lg:flex lg:justify-between lg:gap-2 h-full lg:py-16">
-            <header className="lg:sticky lg:top-0 lg:flex lg:flex-col sm:flex-row md:flex-row lg:justify-between lg:w-5/12 md:w-full sm:w-full h-full lg:py-10 sm:h-auto">
+            <header className="lg:sticky lg:top-0 lg:flex lg:flex-col sm:flex-row md:flex-row lg:justify-between lg:w-5/12 md:w-full sm:w-full h-full lg:py-10 sm:h-auto ">
               <div>
                 <div>
                   <h1 className="text-4xl font-bold tracking-tight text-slate-200 sm:text-5xl">
@@ -153,7 +190,7 @@ function App() {
                         >
                           <span
                             className={`nav-indicator mr-4 h-px w-8 transition-all ${activeSection === item.id
-                              ? "w-14 bg-slate-200"
+                              ? "lg:w-14 bg-slate-200"
                               : "bg-slate-600"
                               } group-hover:w-14 group-hover:bg-slate-200`}
                           ></span>
@@ -170,46 +207,6 @@ function App() {
                     ))}
                   </ul>
                 </nav>
-
-                {/* Dropdown Menu for Small Screens */}
-                {isMenuOpen && (
-                  <nav className="lg:hidden fixed top-0 right-0 w-full shadow-md z-50">
-                    <ul className="flex flex-col mt-16">
-                      {[
-                        { id: "/", label: "About" },
-                        { id: "experience", label: "Experience" },
-                        { id: "projects", label: "Projects" },
-                        { id: "contact", label: "Contact" },
-                      ].map((item) => (
-                        <li key={item.id} className="border-b border-gray-200">
-                          <button
-                            className={`group flex items-center py-3 px-4 w-full text-left ${activeSection === item.id ? "active" : ""
-                              }`}
-                            onClick={() => {
-                              handleNavClick(item.id);
-                              setIsMenuOpen(false);
-                            }}
-                          >
-                            <span
-                              className={`nav-indicator mr-4 h-px w-8 transition-all ${activeSection === item.id
-                                ? "w-20 bg-slate-200"
-                                : "bg-slate-600"
-                                }`}
-                            ></span>
-                            <span
-                              className={`nav-text text-xs font-bold uppercase tracking-widest transition-all ${activeSection === item.id
-                                ? "text-slate-200"
-                                : "text-slate-500"
-                                }`}
-                            >
-                              {item.label}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
-                )}
               </div>
               <div>
                 <ul className="ml-1 mt-8 flex items-center">
@@ -287,15 +284,17 @@ function App() {
               <section
                 id="/"
                 ref={(el) => (sections.current[0] = el)}
-                className="mt-4"
+                className="mt-4 min-h-screen"
               >
-                <About/>
+                <h1 className=" lg:hidden z-40 text-xl font-bold text-teal-300 py-4 sm:mt-4 ">About</h1>
+                <About />
               </section>
               <section
                 id="experience"
                 ref={(el) => (sections.current[1] = el)}
                 className="mt-4"
               >
+                <h1 className="z-10 text-xl font-bold text-teal-300 py-4">Experiance</h1>
                 <Experiance />
               </section>
               <section
@@ -303,6 +302,7 @@ function App() {
                 ref={(el) => (sections.current[2] = el)}
                 className="mt-4"
               >
+                <h1 className="z-10 text-xl font-bold text-teal-300 py-4">Projects</h1>
                 <ProjectsPage />
               </section>
               <section

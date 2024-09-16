@@ -36,7 +36,7 @@ function Experiance() {
                 </li>
                 {/* Add more experience list items here */}
             </ul>
-            <div className="mt-8">
+            <div className="mt-6">
                 <a className="inline-flex items-baseline leading-tight hover:text-teal-300 focus-visible:text-teal-300 font-semibold text-slate-200 group/link text-base" href="https://storage.googleapis.com/jayakumar/Jayakumar-MERN%20Stack%20Developer.pdf " target="_blank" rel="noreferrer noopener" aria-label="View Full Résumé (opens in a new tab)">
                     <span>View Full Resume
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="inline-block h-4 w-4 shrink-0 transition-transform group-hover/link:-translate-y-1 group-hover/link:translate-x-1 group-focus-visible/link:-translate-y-1 group-focus-visible/link:translate-x-1 motion-reduce:transition-none ml-1 translate-y-px" aria-hidden="true">
