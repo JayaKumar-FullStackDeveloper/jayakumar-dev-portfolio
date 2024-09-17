@@ -5,7 +5,7 @@ function ProjectsPage() {
   const projects = [
     {
       title: 'Why Weds: Wedding Events Arrangements - Web Application Development',
-      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', 
+      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1726586332/Screenshot_2024-09-17_204814_q98p3p.png', 
       platform: 'React, HTML5, JS, Tailwind CSS, Node and Express, MongoDB',
       link: '/projects/why-weds',
     },
