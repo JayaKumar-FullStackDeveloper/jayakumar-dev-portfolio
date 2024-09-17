@@ -3,7 +3,8 @@ import React, { useEffect, useState, useRef } from "react";
 import About from "./components/about";
 import Experiance from "./components/experiance";
 import ProjectsPage from "./components/projects";
-import Contacts from "./components/contact";
+import Footer from "./components/footer";
+import Contact from "./components/contact";
 
 function App() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -103,8 +104,8 @@ function App() {
           className="absolute inset-0 z-0 transition duration-300"
           style={gradientStyle}
         ></div>
-         {/* Mobile Header */}
-         <div className="w-full bg-slate-900 lg:hidden fixed top-0 py-2 px-6 z-40">
+        {/* Mobile Header */}
+        <div className="w-full bg-slate-900 border-b-2 border-spacing-1 border-slate-500 lg:hidden fixed top-0 py-2 px-6 z-40">
           <button
             className="text-slate-600 flex justify-between w-full"
             onClick={toggleMenu}
@@ -112,7 +113,7 @@ function App() {
             aria-label="Toggle navigation menu"
             ref={menuButtonRef}
           >
-             <h2 className="text-lg font-medium tracking-tight text-slate-200 sm:text-xl">{menuItems.find((item) => item.id === activeSection)?.label || "Jayakumar"}</h2>            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <h2 className="text-lg font-medium tracking-tight text-slate-200 sm:text-xl">{menuItems.find((item) => item.id === activeSection)?.label || "Jayakumar"}</h2>            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
           </button>
@@ -137,14 +138,12 @@ function App() {
                     }}
                   >
                     <span
-                      className={`nav-indicator mr-4 h-px transition-all ${
-                        activeSection === item.id ? "w-8 bg-slate-200" : "bg-slate-600 w-4"
-                      }`}
+                      className={`nav-indicator mr-4 h-px transition-all ${activeSection === item.id ? "w-8 bg-slate-200" : "bg-slate-600 w-4"
+                        }`}
                     ></span>
                     <span
-                      className={`nav-text text-xs font-bold uppercase tracking-widest transition-all ${
-                        activeSection === item.id ? "text-slate-200" : "text-slate-500"
-                      }`}
+                      className={`nav-text text-xs font-bold uppercase tracking-widest transition-all ${activeSection === item.id ? "text-slate-200" : "text-slate-500"
+                        }`}
                     >
                       {item.label}
                     </span>
@@ -156,7 +155,7 @@ function App() {
         )}
         <div className="relative z-10 mx-auto max-w-screen-xl px-6 py-12 font-sans md:px-12 md:py-20 lg:px-20 lg:py-0 h-full">
           <div className="lg:flex lg:justify-between lg:gap-2 h-full lg:py-16">
-            <header className="lg:sticky lg:top-0 lg:flex lg:flex-col sm:flex-row md:flex-row lg:justify-between lg:w-5/12 md:w-full sm:w-full h-full lg:py-10 sm:h-auto ">
+            <header className="lg:sticky lg:top-0 lg:flex-col sm:flex-row flex-row lg:justify-between lg:w-5/12 md:w-full sm:w-full h-full lg:py-10 sm:h-auto">
               <div>
                 <div>
                   <h1 className="text-4xl font-bold tracking-tight text-slate-200 sm:text-5xl">
@@ -165,7 +164,7 @@ function App() {
                   <h2 className="mt-3 text-lg font-medium tracking-tight text-slate-200 sm:text-xl">
                     Full Stack Developer
                   </h2>
-                  <p className="mt-4 max-w-xs leading-normal">
+                  <p className="lg:mt-4 mt-2 max-w-xs leading-normal">
                     I build pixel-perfect, engaging, and accessible digital
                     experiences.
                   </p>
@@ -209,7 +208,7 @@ function App() {
                 </nav>
               </div>
               <div>
-                <ul className="ml-1 mt-8 flex items-center">
+                <ul className="ml-1 lg:mt-8 md:mt-4 mt-4 flex items-center">
                   <li className="mr-5 text-xs shrink-0">
                     <a
                       className="block hover:text-slate-200"
@@ -284,9 +283,9 @@ function App() {
               <section
                 id="/"
                 ref={(el) => (sections.current[0] = el)}
-                className="mt-4 min-h-screen"
+                className="mt-4"
               >
-                <h1 className=" lg:hidden z-40 text-xl font-bold text-teal-300 py-4 sm:mt-4 ">About</h1>
+                <h1 className=" lg:hidden z-40 text-xl font-bold text-teal-300 pb-4 mt-10 ">About</h1>
                 <About />
               </section>
               <section
@@ -294,7 +293,7 @@ function App() {
                 ref={(el) => (sections.current[1] = el)}
                 className="mt-4"
               >
-                <h1 className="z-10 text-xl font-bold text-teal-300 py-4">Experiance</h1>
+                <h1 className="z-10 text-xl font-bold text-teal-300 pb-2">Experiance</h1>
                 <Experiance />
               </section>
               <section
@@ -302,7 +301,7 @@ function App() {
                 ref={(el) => (sections.current[2] = el)}
                 className="mt-4"
               >
-                <h1 className="z-10 text-xl font-bold text-teal-300 py-4">Projects</h1>
+                <h1 className="z-10 text-xl font-bold text-teal-300 py-2">Projects</h1>
                 <ProjectsPage />
               </section>
               <section
@@ -310,7 +309,9 @@ function App() {
                 ref={(el) => (sections.current[3] = el)}
                 className="mt-4"
               >
-                <Contacts />
+                <h1 className="z-10 text-xl font-bold text-teal-300 py-2">Contact</h1>
+               <Contact/>
+                <Footer />
               </section>
             </main>
           </div>

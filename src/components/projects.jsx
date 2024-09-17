@@ -35,10 +35,10 @@ function ProjectsPage() {
             <img
               src={project.thumbnail}
               alt={project.title}
-              className="z-10 sm:col-span-3 w-full h-30 object-cover rounded-sm"
+              className="z-10 sm:col-span-3 w-full h-30 object-cover rounded-sm "
             />
             <div className="z-10 sm:col-span-5">
-              <h3 className="font-medium leading-snug text-slate-200">
+              <h3 className="font-medium leading-snug text-slate-200 ">
                 <div>
                   <Link
                     className="inline-flex items-baseline font-medium leading-tight text-slate-200 hover:text-teal-300 focus-visible:text-teal-300 group/link text-base"
@@ -46,7 +46,7 @@ function ProjectsPage() {
                     aria-label={project.title}
                   >
                     <span className="absolute -inset-x-4 -inset-y-2.5 hidden rounded md:-inset-x-6 md:-inset-y-4 sm:-inset-y-6 lg:block "></span>
-                    <span >{project.title}</span>
+                    <span  className=''>{project.title}</span>
                   </Link>
                 </div>
               </h3>

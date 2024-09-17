@@ -24,7 +24,7 @@ function About() {
         allowing me to contribute as a full-stack developer. I've built REST APIs, managed databases, and 
         ensured seamless communication between the frontend and backend.
         Technically, I'm proficient in Tailwind CSS, HTML5, CSS3, and JavaScript (ES6+).</p>
-      <p className='text-justify text-sm font-medium leading-5.5 pb-2'>
+      <p className='text-justify text-sm font-medium leading-5.5'>
         I also have experience with tools like Docker, Postman, and Git for containerization,
         API testing, and version control. At Why Global Service, I've worked with cross-functional teams,
         which has further strengthened my problem-solving and collaboration skills.
