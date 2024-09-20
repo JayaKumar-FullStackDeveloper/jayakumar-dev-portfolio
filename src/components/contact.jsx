@@ -20,7 +20,7 @@ function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/send', formData);  // Update the endpoint to match your backend setup
+      const response = await axios.post('https://your-backend.onrender.comnpm runn/send', formData);  // Update the endpoint to match your backend setup
       console.log('Server response:', response);
       setStatusMessage('Your message has been sent successfully! I will get back to you soon.');
       setFormData({
