@@ -35,8 +35,7 @@ function Contact() {
   };
 
   return (
-    <div className="max-w-lg mx-auto lg:mb-4 p-8 border-gray-950  rounded-lg shadow-lg">
-      {/* <h2 className="text-3xl font-bold text-center text-white mb-6">Contact Me</h2> */}
+    <div className="max-w-lg mx-auto lg:mb-4 p-4 border-gray-950  rounded-lg shadow-lg">
       {statusMessage && (
         <p className="text-center mb-6 text-yellow-300 font-semibold">
           {statusMessage}

@@ -5,6 +5,8 @@ import Experiance from "./components/experiance";
 import ProjectsPage from "./components/projects";
 import Footer from "./components/footer";
 import Contact from "./components/contact";
+import IconMarquee from "./components/skills";
+import { Link } from "react-router-dom";
 
 function App() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -126,6 +128,7 @@ function App() {
               {[
                 { id: "/", label: "About" },
                 { id: "experience", label: "Experience" },
+                { id: "Skills", label: "Tech Stack & Skills" },
                 { id: "projects", label: "Projects" },
                 { id: "contact", label: "Contact" },
               ].map((item) => (
@@ -178,6 +181,7 @@ function App() {
                     {[
                       { id: "/", label: "About" },
                       { id: "experience", label: "Experience" },
+                      { id: "Skills", label: "Tech Stack & Skills" },
                       { id: "projects", label: "Projects" },
                       { id: "contact", label: "Contact" },
                     ].map((item) => (
@@ -297,11 +301,28 @@ function App() {
                 <Experiance />
               </section>
               <section
+                id="Skills"
+                ref={(el) => (sections.current[1] = el)}
+                className="mt-4"
+              >
+                <h1 className="z-40 text-xl font-bold text-teal-300 pb-2">Tech Stack & Skills</h1>
+                <IconMarquee />
+              </section>
+              <section
                 id="projects"
                 ref={(el) => (sections.current[2] = el)}
                 className="mt-4"
               >
-                <h1 className="z-10 text-xl font-bold text-teal-300 py-2">Projects</h1>
+                <div className="flex justify-between self-center py-2 mb-2">
+                <h1 className="z-10 text-xl font-bold text-teal-300 self-center h-full ">Projects</h1>
+                  <Link className="inline-flex items-baseline self-center leading-tight hover:text-teal-300 focus-visible:text-teal-300 font-semibold text-slate-200 group/link text-base" href="https://storage.googleapis.com/jayakumar/Jayakumar-MERN%20Stack%20Developer.pdf " target="_blank" rel="noreferrer noopener" aria-label="View Full Project">
+                    <span>View more Project
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="inline-block h-4 w-4 shrink-0 transition-transform group-hover/link:-translate-y-1 group-hover/link:translate-x-1 group-focus-visible/link:-translate-y-1 group-focus-visible/link:translate-x-1 motion-reduce:transition-none ml-1 translate-y-px" aria-hidden="true">
+                        <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clipRule="evenodd"></path>
+                      </svg>
+                    </span>
+                  </Link>                
+                </div>
                 <ProjectsPage />
               </section>
               <section
@@ -310,7 +331,7 @@ function App() {
                 className="mt-4"
               >
                 <h1 className="z-10 text-xl font-bold text-teal-300 py-2">Contact</h1>
-               <Contact/>
+                <Contact />
                 <Footer />
               </section>
             </main>
