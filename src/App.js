@@ -95,6 +95,7 @@ function App() {
   const menuItems = [
     { id: "/", label: "JK ! Dev" },
     { id: "experience", label: "Experience" },
+    { id: "Skills", label: "Tech Stack & Skills" },
     { id: "projects", label: "Projects" },
     { id: "contact", label: "Contact" },
   ];
