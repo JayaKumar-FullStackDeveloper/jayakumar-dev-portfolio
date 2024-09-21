@@ -18,8 +18,8 @@ export const IconMarquee = () => {
   ];
 
   return (
-    <div id="icon-section" className={`transition-opacity z-50 relative duration-1000 py-4`}>
-      <div className="grid lg:grid-cols-8 grid-cols-6 gap-3 w-full items-center justify-center z-50">
+    <div id="icon-section" className={`transition-opacity z-50 relative duration-1000 py-4 px-2`}>
+      <div className="lg:grid lg:grid-cols-8 grid grid-cols-6 lg:gap-3 gap-2 w-full items-center justify-center z-50">
         {icons.map((Icon, index) => (
           <IconCard key={index} Icon={Icon} />
         ))}
