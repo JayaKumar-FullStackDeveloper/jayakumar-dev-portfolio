@@ -6,7 +6,7 @@ import { IoLogoFigma } from "react-icons/io5";
 const IconCard = ({ Icon }) => {
   return (
     <div className="flex items-center justify-center w-14 h-14 dark:bg-gray-900 rounded-full transform transition-transform duration-300 hover:scale-110 hover:bg-gray-300 dark:hover:bg-gray-700 z-50">
-      <Icon className="text-3xl text-blue-500 z-50 relative" />
+      <Icon className="text-3xl text-blue-700 hover:text-slate-50 z-50 relative" />
     </div>
   );
 };

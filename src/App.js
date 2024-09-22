@@ -95,7 +95,7 @@ function App() {
   const menuItems = [
     { id: "/", label: "JK ! Dev" },
     { id: "experience", label: "Experience" },
-    { id: "Skills", label: "Tech Stack & Skills" },
+    { id: "skills", label: "Tech Stack & Skills" },
     { id: "projects", label: "Projects" },
     { id: "contact", label: "Contact" },
   ];
@@ -129,7 +129,7 @@ function App() {
               {[
                 { id: "/", label: "About" },
                 { id: "experience", label: "Experience" },
-                { id: "Skills", label: "Tech Stack & Skills" },
+                { id: "skills", label: "Tech Stack & Skills" },
                 { id: "projects", label: "Projects" },
                 { id: "contact", label: "Contact" },
               ].map((item) => (
@@ -168,7 +168,7 @@ function App() {
                   <h2 className="mt-3 text-lg font-medium tracking-tight text-slate-200 sm:text-xl">
                     Full Stack Developer
                   </h2>
-                  <p className="lg:mt-4 mt-2 max-w-xs leading-normal">
+                  <p className="lg:mt-4 mt-3 max-w-xs leading-normal">
                     I build pixel-perfect, engaging, and accessible digital
                     experiences.
                   </p>
@@ -182,7 +182,7 @@ function App() {
                     {[
                       { id: "/", label: "About" },
                       { id: "experience", label: "Experience" },
-                      { id: "Skills", label: "Tech Stack & Skills" },
+                      { id: "skills", label: "Tech Stack & Skills" },
                       { id: "projects", label: "Projects" },
                       { id: "contact", label: "Contact" },
                     ].map((item) => (
@@ -288,9 +288,9 @@ function App() {
               <section
                 id="/"
                 ref={(el) => (sections.current[0] = el)}
-                className="mt-4"
+                className="mt-4 lg:mt-6"
               >
-                <h1 className=" lg:hidden z-40 text-xl font-bold text-teal-300 pb-4 mt-10 ">About</h1>
+                <h1 className=" lg:hidden z-40 text-xl font-bold text-teal-300 lg:pb-4 pb-2 mt-6 ">About</h1>
                 <About />
               </section>
               <section
@@ -302,8 +302,8 @@ function App() {
                 <Experiance />
               </section>
               <section
-                id="Skills"
-                ref={(el) => (sections.current[1] = el)}
+                id="skills"
+                ref={(el) => (sections.current[2] = el)}
                 className="mt-4"
               >
                 <h1 className="z-40 text-xl font-bold text-teal-300 pb-2">Tech Stack & Skills</h1>
@@ -311,7 +311,7 @@ function App() {
               </section>
               <section
                 id="projects"
-                ref={(el) => (sections.current[2] = el)}
+                ref={(el) => (sections.current[3] = el)}
                 className="mt-4"
               >
                 <div className="flex justify-between self-center py-2 mb-2">
@@ -328,7 +328,7 @@ function App() {
               </section>
               <section
                 id="contact"
-                ref={(el) => (sections.current[3] = el)}
+                ref={(el) => (sections.current[4] = el)}
                 className="mt-4"
               >
                 <h1 className="z-10 text-xl font-bold text-teal-300 py-2">Contact</h1>
