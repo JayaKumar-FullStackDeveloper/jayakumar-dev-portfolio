@@ -3,7 +3,7 @@ import React from 'react'
 function About() {
   return (
     <div className="select-none  sm:z-20 lg:mt-0 mt-4">
-      <p className='text-justify lg:text-[15px] text-base font-medium leading-5.5 lg:pb-3 pb-2'>
+      <p className='text-justify lg:text-[15px] text-base font-medium leading-5.5 lg:pb-3 pb-2 pt-1'>
         Hi! I am Jayakumar, and I am a Full Stack Developer specializing in React.js development.
         I thoroughly enjoyed the coding, problem-solving, and creativity involved, and 
         that experience made me realize I wanted to pursue a career in this field.</p>
@@ -19,7 +19,7 @@ function About() {
         allowing me to contribute as a full-stack developer. I've built REST APIs, managed databases, and 
         ensured seamless communication between the frontend and backend.
         Technically, I'm proficient in Tailwind CSS, HTML5, CSS3, and JavaScript (ES6+).</p>
-      <p className='text-justify lg:text-[15px] text-base font-medium leading-5.5 pb-2 lg:pb-5'>
+      <p className='text-justify lg:text-[15px] text-base font-medium leading-5.5 pb-2 lg:pb-6'>
         I also have experience with tools like Docker, Postman, and Git for containerization,
         API testing, and version control. 
         I'm a passionate learner and committed to keeping up with the latest trends in web development.
