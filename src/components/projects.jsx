@@ -17,7 +17,7 @@ function ProjectsPage() {
     },
     {
       title: 'Nalaiya Thiran Project: ICT Academy-IBM: Plasma Donor Application - Cloud web Application Development',
-      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1723233527/Screenshot_2024-08-02_201129_uhtpig.png', 
+      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1727089414/Screenshot_2024-09-23_163302_hbwpgf.png', 
       platform: 'Python Flask Framework, HTML5, CSS, JS, IBM Db2, Jira, SendGrid',
       link: '/projects/nalaiya-thiran',
     },
