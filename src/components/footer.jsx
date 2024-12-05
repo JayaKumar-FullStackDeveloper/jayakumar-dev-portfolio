@@ -34,9 +34,9 @@ const Footer = () => {
             <div className="col-span-2 lg:col-span-1">
               <h3 className="text-white font-semibold mb-2">Current Address</h3>
               <p className="mb-px">
-                3rd Venkatachalapathi Street, Shenoy Nagar,
+                No:2, Vara Sakthi Vinayagar Kovil Street, Vanagaram,
               </p>
-              <p className="mb-px">Chennai-600 030</p>
+              <p className="mb-px">Chennai-600 095</p>
             </div>
           </div>
         </div>
