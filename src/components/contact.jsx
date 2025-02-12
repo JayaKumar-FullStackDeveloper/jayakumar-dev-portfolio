@@ -9,6 +9,7 @@ function Contact() {
   });
 
   const [statusMessage, setStatusMessage] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -23,6 +24,7 @@ function Contact() {
       const response = await axios.post('https://formspree.io/f/mnnakpbj', formData);  // Update the endpoint to match your backend setup
       console.log('Server response:', response);
       setStatusMessage('Your message has been sent successfully! I will get back to you soon.');
+      setIsSubmitted(true);
       setFormData({
         name: '',
         email: '',
@@ -85,9 +87,11 @@ function Contact() {
           Send Message
         </button>
       </form>
-      <p className="text-center text-sm text-white lg:mt-4 mt-2">
-       Thanks for reaching out!
-      </p>
+      {isSubmitted && (
+        <p className="text-center text-sm text-white lg:mt-4 mt-2">
+          Thanks for reaching out!
+        </p>
+      )}
     </div>
   );
 }

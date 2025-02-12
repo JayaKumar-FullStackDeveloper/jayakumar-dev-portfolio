@@ -6,8 +6,14 @@ function ProjectsPage() {
     {
       title: 'Why Weds: Wedding Events Arrangements - Web Application Development',
       thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1726586332/Screenshot_2024-09-17_204814_q98p3p.png', 
-      platform: 'React, HTML5, JS, Tailwind CSS, Node and Express, MongoDB',
+      platform: 'React, HTML5, JS, Tailwind CSS, Node and Express, MongoDB , AWS',
       link: '/projects/why-weds',
+    },
+    {
+      title: 'Admin Dashboard: Thozhil Job Portal Admin Module Web Application Development',
+      thumbnail: 'https://res.cloudinary.com/duurpdqpr/image/upload/v1739383422/admin_s3zgya.webp', 
+      platform: 'React, HTML5, JS, Tailwind CSS, Node and Express, MongoDB',
+      link: '/projects/thozhil',
     },
     {
       title: 'Laya: Skin and Hair Care E-Commerce Web Application Development',
