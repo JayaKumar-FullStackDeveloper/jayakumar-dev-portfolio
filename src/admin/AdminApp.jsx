@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { isFirebaseConfigured } from '../lib/firebaseConfig';
 import { isActiveAdmin, requestPasswordReset, signIn, signOutUser, watchAuth } from '../services/authService';
 import { markAdminDevice } from '../services/analyticsService';
-import { Banner, buttonClass, Field, inputClass, SessionContext, ToastProvider, useSession } from './ui';
+import { Banner, BrandMark, buttonClass, Field, inputClass, OWNER, SessionContext, ToastProvider, useSession } from './ui';
 import { ProjectEditor, ProjectsList } from './ProjectsAdmin';
 import CategoriesAdmin from './CategoriesAdmin';
 import AnalyticsAdmin from './AnalyticsAdmin';
@@ -53,7 +53,14 @@ function Screen({ children }) {
 function CenteredCard({ title, children }) {
   return (
     <div className="px-4 py-10">
-      <div className="mx-auto mt-10 max-w-sm rounded-lg border border-admin-border bg-admin-card p-6">
+      <div className="mx-auto mt-10 flex max-w-sm items-center gap-3">
+        <BrandMark />
+        <div className="flex flex-col">
+          <span className="font-semibold text-admin-strong">{OWNER.name}</span>
+          <span className="text-xs text-admin-muted">Portfolio admin</span>
+        </div>
+      </div>
+      <div className="mx-auto mt-6 max-w-sm rounded-lg border border-admin-border bg-admin-card p-6">
         <h1 className="mb-4 text-xl font-bold text-admin-heading">{title}</h1>
         {children}
       </div>

@@ -34,8 +34,40 @@ import {
 } from '../services/projectService';
 import { ProjectCard } from '../components/projects';
 import PostViewer from '../components/postViewer';
-import { fitImageUrl } from '../lib/images';
-import { Banner, buttonClass, Field, formatDate, inputClass, SegmentedControl, smallButtonClass, StatusBadge, useSession } from './ui';
+import { cardImageUrl, fitImageUrl } from '../lib/images';
+import {
+  FaCode,
+  FaEllipsisV,
+  FaFileImport,
+  FaList,
+  FaMagic,
+  FaPalette,
+  FaPen,
+  FaPlus,
+  FaSearch,
+  FaStar,
+  FaThLarge,
+  FaUndo,
+} from 'react-icons/fa';
+import {
+  Banner,
+  buttonClass,
+  Card,
+  EmptyState,
+  ErrorState,
+  Field,
+  formatDate,
+  Icon,
+  inputClass,
+  MenuButton,
+  SegmentedControl,
+  SkeletonRows,
+  smallButtonClass,
+  StatusBadge,
+  useConfirm,
+  useSession,
+  useToast,
+} from './ui';
 import { MediaPicker, UploadButton } from './MediaAdmin';
 
 const errorMessage = (err) => {
@@ -47,16 +79,40 @@ const errorMessage = (err) => {
 };
 
 /* ======================================================================
-   Project list
+   Project list (card and table views)
    ====================================================================== */
 
-const STATUS_FILTERS = [
-  { id: 'active', label: 'All (not in trash)' },
-  { id: 'draft', label: 'Drafts' },
+const STATUS_TABS = [
+  { id: 'active', label: 'All' },
   { id: 'published', label: 'Published' },
+  { id: 'draft', label: 'Draft' },
   { id: 'archived', label: 'Archived' },
   { id: 'trash', label: 'Trash' },
 ];
+
+const SORTS = [
+  { id: 'updated', label: 'Recently updated' },
+  { id: 'title', label: 'Title A–Z' },
+  { id: 'order', label: 'Manual order' },
+];
+
+const VIEW_KEY = 'admin.projects.view';
+
+function readView() {
+  try {
+    return window.localStorage.getItem(VIEW_KEY) === 'table' ? 'table' : 'cards';
+  } catch {
+    return 'cards';
+  }
+}
+
+function writeView(view) {
+  try {
+    window.localStorage.setItem(VIEW_KEY, view);
+  } catch {
+    // Storage can be blocked; the toggle still works for this visit.
+  }
+}
 
 function matchesStatus(project, filter) {
   if (filter === 'trash') return Boolean(project.deletedAt);
@@ -64,20 +120,87 @@ function matchesStatus(project, filter) {
   return filter === 'active' || project.status === filter;
 }
 
+const SORTERS = {
+  updated: (a, b) => (b.updatedAt?.toMillis?.() ?? 0) - (a.updatedAt?.toMillis?.() ?? 0),
+  title: (a, b) => a.title.localeCompare(b.title),
+  order: (a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+};
+
+// "Oct 19, 2026"; the full date and time stays in the tooltip.
+const shortDate = (timestamp) => {
+  const date = timestamp?.toDate?.();
+  return date ? date.toLocaleDateString(undefined, { dateStyle: 'medium' }) : '—';
+};
+
+const monogram = (title) =>
+  title
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
+
+// Where "View" opens: the post popup for posts, else the project's own link.
+const publicUrl = (p) => (p.display === 'gallery' ? `/#post=${p.slug}` : p.projectUrl || null);
+
+// Cover image, or a type-colored monogram when there is none.
+function ProjectThumb({ project, className = '' }) {
+  const cover = project.coverMedia?.url;
+  if (cover) {
+    const src = project.display === 'gallery' ? fitImageUrl(cover, 480, 270) : cardImageUrl(cover, 480);
+    return (
+      <div className={`overflow-hidden bg-slate-950 ${className}`}>
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          className={`h-full w-full ${project.display === 'gallery' ? 'object-contain' : 'object-cover object-top'}`}
+        />
+      </div>
+    );
+  }
+  const tone =
+    project.type === 'Design'
+      ? 'border-admin-accent-border bg-admin-accent-bg text-admin-accent-text'
+      : 'border-blue-400/40 bg-blue-500/10 text-blue-200';
+  return (
+    <div aria-hidden="true" className={`flex items-center justify-center border text-xs font-semibold ${tone} ${className}`}>
+      {monogram(project.title)}
+    </div>
+  );
+}
+
+function FeaturedStar({ featured, size = 16 }) {
+  return (
+    <span title={featured ? 'Featured' : 'Not featured'} className="inline-flex">
+      <Icon as={FaStar} size={size} className={featured ? 'text-admin-accent' : 'text-slate-600'} />
+      <span className="sr-only">{featured ? 'Featured' : 'Not featured'}</span>
+    </span>
+  );
+}
+
+const kebabClass =
+  'flex h-8 w-8 items-center justify-center rounded-full border border-admin-border text-admin-body hover:border-admin-accent-border hover:text-admin-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-admin-accent max-md:h-11 max-md:w-11';
+
 export function ProjectsList() {
   const { user } = useSession();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [confirm, confirmDialog] = useConfirm();
   const [data, setData] = useState({ status: 'loading', projects: [], categories: [] });
-  const [filters, setFilters] = useState({ type: 'all', status: 'active', category: 'all', featured: false, search: '' });
+  const [filters, setFilters] = useState({ type: 'all', status: 'active', category: 'all', featured: false, search: '', sort: 'updated' });
+  const [view, setView] = useState(readView);
   const [busyId, setBusyId] = useState(null);
-  const [notice, setNotice] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   const load = useCallback(async () => {
+    setLoadError('');
     try {
       const [projects, categories] = await Promise.all([listProjects(), listCategories()]);
       setData({ status: 'ready', projects, categories });
     } catch (err) {
       setData((d) => ({ ...d, status: 'error' }));
-      setNotice({ tone: 'error', text: `Couldn't load projects: ${errorMessage(err)}` });
+      setLoadError(errorMessage(err));
     }
   }, []);
 
@@ -85,218 +208,417 @@ export function ProjectsList() {
     load();
   }, [load]);
 
-  const categoryName = (id) => data.categories.find((c) => c.id === id)?.name || id;
+  const changeView = (next) => {
+    setView(next);
+    writeView(next);
+  };
+
+  const categoryNames = (p) =>
+    (p.categoryIds || []).map((id) => data.categories.find((c) => c.id === id)?.name || id).join(', ') || 'No category';
   const setFilter = (key) => (e) =>
     setFilters((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
-  const visible = data.projects.filter((p) => {
-    const search = filters.search.trim().toLowerCase();
-    return (
-      matchesStatus(p, filters.status) &&
-      (filters.type === 'all' || p.type === filters.type) &&
-      (filters.category === 'all' || (p.categoryIds || []).includes(filters.category)) &&
-      (!filters.featured || p.featured) &&
-      (!search || p.title.toLowerCase().includes(search) || p.slug.includes(search))
-    );
-  });
+  const counts = Object.fromEntries(
+    STATUS_TABS.map((tab) => [tab.id, data.projects.filter((p) => matchesStatus(p, tab.id)).length])
+  );
+
+  const search = filters.search.trim().toLowerCase();
+  const visible = data.projects
+    .filter(
+      (p) =>
+        matchesStatus(p, filters.status) &&
+        (filters.type === 'all' || p.type === filters.type) &&
+        (filters.category === 'all' || (p.categoryIds || []).includes(filters.category)) &&
+        (!filters.featured || p.featured) &&
+        (!search || p.title.toLowerCase().includes(search) || p.slug.includes(search))
+    )
+    .sort(SORTERS[filters.sort]);
+
+  const filtersActive =
+    filters.type !== 'all' || filters.category !== 'all' || filters.featured || Boolean(search);
+  const clearFilters = () => setFilters((f) => ({ ...f, type: 'all', category: 'all', featured: false, search: '' }));
 
   const legacyMissing = LEGACY_PROJECTS.some((l) => !data.projects.some((p) => p.slug === l.slug));
   const sampleMissing = !data.projects.some((p) => p.slug === SAMPLE_POST.slug);
 
-  const run = async (id, action, confirmText, successText) => {
-    if (confirmText && !window.confirm(confirmText)) return;
+  // Runs an action with optional confirmation, then reports the outcome as a toast.
+  const run = async (id, action, { dialog, success, undo } = {}) => {
+    if (dialog && !(await confirm(dialog))) return;
     setBusyId(id);
-    setNotice(null);
     try {
       await action();
-      setNotice({ tone: 'success', text: successText });
+      toast.show({ text: success, action: undo });
       await load();
     } catch (err) {
-      setNotice({ tone: 'error', text: errorMessage(err) });
+      toast.show({ tone: 'error', text: errorMessage(err) });
     } finally {
       setBusyId(null);
     }
   };
 
+  const uid = user.uid;
+  const ACTIONS = {
+    publish: (p) => run(p.id, () => publishProject(p.id, uid), { success: `"${p.title}" is live.` }),
+    unpublish: (p) =>
+      run(p.id, () => unpublishProject(p.id, uid), {
+        dialog: {
+          title: `Unpublish "${p.title}"?`,
+          description: 'It disappears from the public portfolio. You can publish it again at any time.',
+          confirmLabel: 'Unpublish',
+          tone: 'warn',
+        },
+        success: `"${p.title}" is now a draft.`,
+      }),
+    archive: (p) =>
+      run(p.id, () => archiveProject(p.id, uid), {
+        dialog: {
+          title: `Archive "${p.title}"?`,
+          description: 'It is hidden from the portfolio and moved to Archived. Its analytics are kept.',
+          confirmLabel: 'Archive',
+          tone: 'warn',
+        },
+        success: `"${p.title}" archived.`,
+      }),
+    restore: (p) => run(p.id, () => restoreProject(p.id, uid), { success: `"${p.title}" restored as a draft.` }),
+    trash: (p) =>
+      run(p.id, () => softDeleteProject(p.id, uid), {
+        dialog: {
+          title: `Move "${p.title}" to the trash?`,
+          description: 'It is hidden from the portfolio. You can restore it from Trash.',
+          confirmLabel: 'Move to trash',
+          tone: 'danger',
+        },
+        success: `"${p.title}" moved to the trash.`,
+        undo: { label: 'Undo', onClick: () => ACTIONS.restore(p) },
+      }),
+    purge: (p) =>
+      run(p.id, () => permanentlyDeleteProject(p.id, uid), {
+        dialog: {
+          title: `Delete "${p.title}" permanently?`,
+          description: 'This removes the project for good. It cannot be undone.',
+          confirmLabel: 'Delete permanently',
+          tone: 'danger',
+          confirmText: 'delete',
+        },
+        success: 'Project permanently deleted.',
+      }),
+  };
+
+  // Primary button + menu items for a project, by status.
+  const actionsFor = (p) => {
+    const url = publicUrl(p);
+    const edit = { label: 'Edit', onSelect: () => navigate(`/admin/projects/${p.id}`) };
+    const trash = { label: 'Move to trash', tone: 'danger', onSelect: () => ACTIONS.trash(p) };
+    if (p.deletedAt) {
+      return {
+        primary: { label: 'Restore', icon: FaUndo, onClick: () => ACTIONS.restore(p) },
+        menu: [{ label: 'Delete permanently', tone: 'danger', onSelect: () => ACTIONS.purge(p) }],
+      };
+    }
+    if (p.status === 'archived') {
+      return { primary: { label: 'Restore', icon: FaUndo, onClick: () => ACTIONS.restore(p) }, menu: [edit, trash] };
+    }
+    const primary = { label: 'Edit', icon: FaPen, to: `/admin/projects/${p.id}` };
+    if (p.status === 'published') {
+      return {
+        primary,
+        menu: [
+          ...(url ? [{ label: 'View on site', href: url, external: true }] : []),
+          { label: 'Unpublish', onSelect: () => ACTIONS.unpublish(p) },
+          { label: 'Archive', onSelect: () => ACTIONS.archive(p) },
+          trash,
+        ],
+      };
+    }
+    return {
+      primary,
+      menu: [
+        { label: 'Publish', onSelect: () => ACTIONS.publish(p) },
+        { label: 'Archive', onSelect: () => ACTIONS.archive(p) },
+        trash,
+      ],
+    };
+  };
+
+  // A render function (not a component) so open menus survive re-renders.
+  const renderActions = (project) => {
+    const { primary, menu } = actionsFor(project);
+    const busy = busyId === project.id;
+    return (
+      <div className="flex items-center justify-end gap-2">
+        {primary.to ? (
+          <Link to={primary.to} className={smallButtonClass.secondary}>
+            <Icon as={primary.icon} size={11} />
+            {primary.label}
+          </Link>
+        ) : (
+          <button type="button" className={smallButtonClass.secondary} onClick={primary.onClick} disabled={busy}>
+            <Icon as={primary.icon} size={11} />
+            {primary.label}
+          </button>
+        )}
+        <MenuButton
+          ariaLabel={`More actions for ${project.title}`}
+          buttonClassName={kebabClass}
+          label={<Icon as={FaEllipsisV} size={13} />}
+          items={menu.map((item) => ({ ...item, disabled: busy }))}
+        />
+      </div>
+    );
+  };
+
   const runImport = () =>
     run('import', async () => {
-      const count = await importLegacyProjects(user.uid);
+      const count = await importLegacyProjects(uid);
       if (count === 0) throw new Error('Nothing to import: all original projects already exist.');
-    }, 'Import the original 4 projects as published Development projects?', 'Original projects imported and published.');
+    }, {
+      dialog: {
+        title: 'Import the original projects?',
+        description: 'Adds the 4 projects that were built into the site as published Development projects.',
+        confirmLabel: 'Import',
+      },
+      success: 'Original projects imported and published.',
+    });
 
   const runSample = () =>
     run('sample', async () => {
-      if (!(await createSamplePost(user.uid))) throw new Error('The sample post already exists.');
-    }, 'Add and publish a sample poster post (Design → Others) so you can try the popup? You can delete it later.',
-    'Sample post published. Open the portfolio, go to Design → Others and click it.');
+      if (!(await createSamplePost(uid))) throw new Error('The sample post already exists.');
+    }, {
+      dialog: {
+        title: 'Add a sample post?',
+        description: 'Publishes a 3-image poster post under Design → Others so you can try the popup. Delete it once your own work is in.',
+        confirmLabel: 'Add sample post',
+      },
+      success: 'Sample post published. Open the portfolio, go to Design → Others and click it.',
+    });
+
+  const tabClass = (on) =>
+    `inline-flex h-8 items-center gap-2 rounded-full border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-admin-accent max-md:min-h-11 ${
+      on ? 'border-admin-accent-border bg-admin-accent-bg text-admin-accent-text' : 'border-admin-border text-admin-body hover:text-admin-accent'
+    }`;
+  const viewButtonClass = (on) =>
+    `flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-admin-accent max-md:h-10 max-md:w-10 ${
+      on ? 'bg-admin-accent-bg text-admin-accent-text' : 'text-admin-muted hover:text-admin-accent'
+    }`;
 
   return (
-    <section aria-labelledby="projects-heading">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 id="projects-heading" className="text-xl font-bold text-teal-300">
-          Projects
-        </h1>
+    <section aria-labelledby="projects-heading" className="flex flex-col gap-6">
+      {confirmDialog}
+
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 id="projects-heading" className="text-xl font-bold text-admin-heading">
+            Projects
+          </h1>
+          <p className="text-admin-muted">Create, publish and organise the projects shown on your portfolio.</p>
+        </div>
         <div className="flex flex-wrap gap-2">
           {data.status === 'ready' && sampleMissing && (
             <button type="button" className={buttonClass.secondary} onClick={runSample} disabled={busyId === 'sample'}>
+              <Icon as={FaMagic} size={14} />
               {busyId === 'sample' ? 'Adding…' : 'Add sample post'}
             </button>
           )}
           {data.status === 'ready' && legacyMissing && (
             <button type="button" className={buttonClass.secondary} onClick={runImport} disabled={busyId === 'import'}>
+              <Icon as={FaFileImport} size={14} />
               {busyId === 'import' ? 'Importing…' : 'Import original projects'}
             </button>
           )}
           <Link to="/admin/projects/new" className={buttonClass.primary}>
+            <Icon as={FaPlus} size={13} />
             Add project
           </Link>
         </div>
       </div>
 
-      {notice && (
-        <Banner tone={notice.tone} onDismiss={() => setNotice(null)}>
-          {notice.text}
-        </Banner>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by status">
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              aria-pressed={filters.status === tab.id}
+              onClick={() => setFilters((f) => ({ ...f, status: tab.id }))}
+              className={tabClass(filters.status === tab.id)}
+            >
+              {tab.label}
+              <span className={`text-xs ${filters.status === tab.id ? 'text-admin-accent-text' : 'text-admin-muted'}`}>
+                {counts[tab.id]}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="flex rounded-full border border-admin-border p-1" role="group" aria-label="Layout">
+          <button type="button" aria-pressed={view === 'cards'} onClick={() => changeView('cards')} className={viewButtonClass(view === 'cards')} title="Card view">
+            <Icon as={FaThLarge} size={14} />
+            <span className="sr-only">Card view</span>
+          </button>
+          <button type="button" aria-pressed={view === 'table'} onClick={() => changeView('table')} className={viewButtonClass(view === 'table')} title="Table view">
+            <Icon as={FaList} size={14} />
+            <span className="sr-only">Table view</span>
+          </button>
+        </div>
+      </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <input
-          type="search"
-          placeholder="Search title or slug"
-          aria-label="Search projects"
-          value={filters.search}
-          onChange={setFilter('search')}
-          className={`${inputClass} lg:col-span-2`}
-        />
-        <select aria-label="Filter by type" value={filters.type} onChange={setFilter('type')} className={inputClass}>
-          <option value="all">All types</option>
-          {PROJECT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <select aria-label="Filter by status" value={filters.status} onChange={setFilter('status')} className={inputClass}>
-          {STATUS_FILTERS.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-        <select aria-label="Filter by category" value={filters.category} onChange={setFilter('category')} className={inputClass}>
-          <option value="all">All categories</option>
-          {data.categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={filters.featured} onChange={setFilter('featured')} className="accent-teal-400" />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(170px,100%),1fr))] items-end gap-3">
+        <div className="col-span-full min-w-0 sm:col-span-2">
+          <label htmlFor="project-search" className="mb-1 block font-medium text-admin-label">Search</label>
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-admin-muted">
+              <Icon as={FaSearch} size={13} />
+            </span>
+            <input id="project-search" type="search" placeholder="Title or slug" value={filters.search} onChange={setFilter('search')} className={`${inputClass} h-9 pl-9`} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="project-type" className="mb-1 block font-medium text-admin-label">Type</label>
+          <select id="project-type" value={filters.type} onChange={setFilter('type')} className={`${inputClass} h-9`}>
+            <option value="all">All types</option>
+            {PROJECT_TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="project-category" className="mb-1 block font-medium text-admin-label">Category</label>
+          <select id="project-category" value={filters.category} onChange={setFilter('category')} className={`${inputClass} h-9`}>
+            <option value="all">All categories</option>
+            {data.categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="project-sort" className="mb-1 block font-medium text-admin-label">Sort</label>
+          <select id="project-sort" value={filters.sort} onChange={setFilter('sort')} className={`${inputClass} h-9`}>
+            {SORTS.map((s) => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+        <label className="flex h-9 items-center gap-2 font-medium text-admin-label max-md:min-h-11">
+          <input type="checkbox" checked={filters.featured} onChange={setFilter('featured')} className="h-4 w-4 accent-teal-400" />
           Featured only
         </label>
       </div>
 
-      {data.status === 'loading' && <p role="status">Loading projects…</p>}
+      {data.status === 'loading' && <SkeletonRows count={5} label="Loading projects" />}
       {data.status === 'error' && (
-        <button type="button" className={buttonClass.secondary} onClick={load}>
-          Try again
-        </button>
-      )}
-      {data.status === 'ready' && visible.length === 0 && (
-        <p className="rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm">
-          {data.projects.length === 0 ? 'No projects yet. Add your first project to get started.' : 'No projects match these filters.'}
-        </p>
+        <ErrorState title="Couldn't load projects" onRetry={load}>
+          {loadError}
+        </ErrorState>
       )}
 
-      <ul className="space-y-3">
-        {visible.map((p) => {
-          const busy = busyId === p.id;
-          const uid = user.uid;
-          return (
-            <li key={p.id} className="flex flex-col gap-4 rounded-lg border border-slate-700/70 p-4 sm:flex-row">
-              <div className="aspect-video w-full shrink-0 overflow-hidden rounded-md bg-slate-800 sm:w-36">
-                {p.coverMedia?.url && (
-                  <img src={p.coverMedia.url} alt="" className="h-full w-full object-cover object-top" loading="lazy" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-medium text-slate-200">{p.title}</h2>
+      {data.status === 'ready' && visible.length === 0 && (
+        <EmptyState
+          title={data.projects.length === 0 ? 'No projects yet' : 'No projects match'}
+          actions={
+            data.projects.length === 0 ? (
+              <Link to="/admin/projects/new" className={buttonClass.primary}>
+                <Icon as={FaPlus} size={13} />
+                Add project
+              </Link>
+            ) : (
+              filtersActive && (
+                <button type="button" className={buttonClass.secondary} onClick={clearFilters}>
+                  Clear filters
+                </button>
+              )
+            )
+          }
+        >
+          {data.projects.length === 0
+            ? 'Add your first project, or try the sample post to see the popup.'
+            : 'Try another status tab or clear the filters.'}
+        </EmptyState>
+      )}
+
+      {data.status === 'ready' && visible.length > 0 && view === 'cards' && (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Projects">
+          {visible.map((p) => (
+            <Card as="li" key={p.id} className="flex flex-col overflow-hidden transition-colors hover:border-admin-border">
+              <div className="relative">
+                <ProjectThumb project={p} className="aspect-video w-full" />
+                <span className="absolute left-3 top-3 rounded-full bg-admin-app/90 shadow-overlay">
                   <StatusBadge project={p} />
-                  {p.featured && <span className="rounded-full bg-slate-700/60 px-2.5 py-0.5 text-xs">Featured</span>}
+                </span>
+                <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-admin-app/90 shadow-overlay">
+                  <FeaturedStar featured={p.featured} size={13} />
+                </span>
+              </div>
+              <div className="flex flex-1 flex-col gap-3 p-4">
+                <div className="min-w-0">
+                  <h2 className="truncate font-medium text-admin-strong" title={p.title}>
+                    <Link to={`/admin/projects/${p.id}`} className="hover:text-admin-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-admin-accent">
+                      {p.title}
+                    </Link>
+                  </h2>
+                  <p className="truncate text-xs text-admin-muted">/{p.slug}</p>
                 </div>
-                <p className="mt-1 text-xs text-admin-muted">
-                  {p.type} · {(p.categoryIds || []).map(categoryName).join(', ') || 'No category'} · /{p.slug} · Updated{' '}
-                  {formatDate(p.updatedAt)}
+                <p className="flex items-center gap-2 text-xs text-admin-body">
+                  <Icon as={p.type === 'Design' ? FaPalette : FaCode} size={12} className="text-admin-muted" />
+                  <span className="truncate">
+                    {p.type} · {categoryNames(p)}
+                  </span>
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {p.deletedAt ? (
-                    <>
-                      <button type="button" disabled={busy} className={smallButtonClass.secondary}
-                        onClick={() => run(p.id, () => restoreProject(p.id, uid), null, 'Project restored as a draft.')}>
-                        Restore
-                      </button>
-                      <button type="button" disabled={busy} className={smallButtonClass.danger}
-                        onClick={() => run(p.id, () => permanentlyDeleteProject(p.id, uid),
-                          `Permanently delete "${p.title}"? This can't be undone.`, 'Project permanently deleted.')}>
-                        Delete permanently
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link to={`/admin/projects/${p.id}`} className={smallButtonClass.secondary}>
-                        Edit
-                      </Link>
-                      {p.status === 'published' && (p.display === 'gallery' || p.projectUrl) && (
-                        <a
-                          href={p.display === 'gallery' ? `/#post=${p.slug}` : p.projectUrl}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          className={smallButtonClass.secondary}
-                        >
-                          View
-                        </a>
-                      )}
-                      {p.status === 'published' ? (
-                        <button type="button" disabled={busy} className={smallButtonClass.secondary}
-                          onClick={() => run(p.id, () => unpublishProject(p.id, uid),
-                            `Unpublish "${p.title}"? It will disappear from the public portfolio.`, 'Project unpublished.')}>
-                          Unpublish
-                        </button>
-                      ) : (
-                        <button type="button" disabled={busy} className={smallButtonClass.primary}
-                          onClick={() => run(p.id, () => publishProject(p.id, uid), null, 'Project published.')}>
-                          Publish
-                        </button>
-                      )}
-                      {p.status === 'archived' ? (
-                        <button type="button" disabled={busy} className={smallButtonClass.secondary}
-                          onClick={() => run(p.id, () => restoreProject(p.id, uid), null, 'Project restored as a draft.')}>
-                          Restore
-                        </button>
-                      ) : (
-                        <button type="button" disabled={busy} className={smallButtonClass.secondary}
-                          onClick={() => run(p.id, () => archiveProject(p.id, uid),
-                            `Archive "${p.title}"? It will be hidden from the public portfolio.`, 'Project archived.')}>
-                          Archive
-                        </button>
-                      )}
-                      <button type="button" disabled={busy} className={smallButtonClass.danger}
-                        onClick={() => run(p.id, () => softDeleteProject(p.id, uid),
-                          `Move "${p.title}" to the trash? It will be hidden from the public portfolio.`, 'Project moved to the trash.')}>
-                        Delete
-                      </button>
-                    </>
-                  )}
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-admin-subtle pt-3">
+                  <span className="text-xs text-admin-muted" title={formatDate(p.updatedAt)}>Updated {shortDate(p.updatedAt)}</span>
+                  {renderActions(p)}
                 </div>
               </div>
-            </li>
-          );
-        })}
-      </ul>
-      {data.projects.length >= 500 && (
-        <p className="mt-4 text-xs text-admin-muted">Showing the 500 most recently updated projects.</p>
+            </Card>
+          ))}
+        </ul>
+      )}
+
+      {data.status === 'ready' && visible.length > 0 && view === 'table' && (
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[820px] text-left">
+            <caption className="sr-only">Projects</caption>
+            <thead>
+              <tr className="bg-slate-800/30 text-xs font-semibold text-admin-muted">
+                <th scope="col" className="px-4 py-2.5 font-semibold">Project</th>
+                <th scope="col" className="px-3 py-2.5 font-semibold">Type</th>
+                <th scope="col" className="px-3 py-2.5 font-semibold">Category</th>
+                <th scope="col" className="px-3 py-2.5 font-semibold">Status</th>
+                <th scope="col" className="px-3 py-2.5 font-semibold"><span className="sr-only">Featured</span></th>
+                <th scope="col" className="px-3 py-2.5 font-semibold">Updated</th>
+                <th scope="col" className="px-4 py-2.5 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((p) => (
+                <tr key={p.id} className="border-t border-admin-subtle hover:bg-slate-800/40">
+                  <td className="px-4 py-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <ProjectThumb project={p} className="h-9 w-12 shrink-0 rounded-md" />
+                      <div className="min-w-0">
+                        <Link to={`/admin/projects/${p.id}`} className="block max-w-[18rem] truncate font-medium text-admin-strong hover:text-admin-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-admin-accent" title={p.title}>
+                          {p.title}
+                        </Link>
+                        <span className="block max-w-[18rem] truncate text-xs text-admin-muted">/{p.slug}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">{p.type}</td>
+                  <td className="max-w-[10rem] truncate px-3 py-3">{categoryNames(p)}</td>
+                  <td className="px-3 py-3"><StatusBadge project={p} /></td>
+                  <td className="px-3 py-3"><FeaturedStar featured={p.featured} /></td>
+                  <td className="whitespace-nowrap px-3 py-3 text-admin-muted" title={formatDate(p.updatedAt)}>{shortDate(p.updatedAt)}</td>
+                  <td className="px-4 py-3">{renderActions(p)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      {data.status === 'ready' && data.projects.length > 0 && (
+        <p className="text-admin-muted">
+          Showing {visible.length} of {counts[filters.status]} {filters.status === 'trash' ? 'in the trash' : 'projects'}
+          {data.projects.length >= 500 && ' · only the 500 most recently updated are loaded'}
+        </p>
       )}
     </section>
   );

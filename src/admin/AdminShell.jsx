@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { signOutUser } from '../services/authService';
-import { Icon, MenuButton, useSession } from './ui';
+import {
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+  FaChartBar,
+  FaChevronDown,
+  FaExternalLinkAlt,
+  FaFolderOpen,
+  FaImages,
+  FaTags,
+} from 'react-icons/fa';
+import { BrandMark, Icon, MenuButton, OWNER, useSession } from './ui';
 
 // Sidebar + top bar around every signed-in admin page.
 // Add a nav entry here when its page and route exist.
@@ -10,29 +20,26 @@ const NAV = [
   {
     to: '/admin',
     label: 'Projects',
-    icon: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+    icon: FaFolderOpen,
     match: (path) => path === '/admin' || path.startsWith('/admin/projects'),
   },
   {
     to: '/admin/categories',
     label: 'Categories',
-    icon: 'M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z M7.5 7.5h.01',
+    icon: FaTags,
   },
   {
     to: '/admin/media',
     label: 'Media',
-    icon: 'M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M21 15l-5-5L5 21',
+    icon: FaImages,
   },
   {
     to: '/admin/analytics',
     label: 'Analytics',
-    icon: 'M3 3v18h18 M7 15v3 M12 9v9 M17 6v12',
+    icon: FaChartBar,
   },
 ];
 
-const EXTERNAL_ICON = 'M14 4h6v6 M20 4l-9 9 M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5';
-const COLLAPSE_ICON = 'M11 17l-5-5 5-5 M18 17l-5-5 5-5';
-const EXPAND_ICON = 'M13 17l5-5-5-5 M6 17l5-5-5-5';
 const STORAGE_KEY = 'admin.sidebar.collapsed';
 
 function readCollapsed() {
@@ -65,7 +72,16 @@ function breadcrumbFor(pathname) {
   return [[found ? found.label : 'Admin']];
 }
 
-const initials = (email) => (email ? email.slice(0, 2).toUpperCase() : 'AD');
+function Avatar({ size = 'h-8 w-8' }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`flex ${size} shrink-0 items-center justify-center rounded-full border border-admin-accent-border bg-admin-accent-bg text-xs font-semibold text-admin-accent-text`}
+    >
+      {OWNER.initials}
+    </span>
+  );
+}
 
 export default function AdminShell() {
   const { user } = useSession();
@@ -112,15 +128,10 @@ export default function AdminShell() {
         }`}
       >
         <div className={`flex items-center gap-3 md:px-1 ${collapsed ? 'md:justify-center md:px-0' : ''}`}>
-          <div
-            aria-hidden="true"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-admin-accent-border bg-admin-accent-bg font-bold text-admin-accent"
-          >
-            P
-          </div>
-          <div className={`flex flex-col ${collapsed ? 'md:hidden' : ''}`}>
-            <span className="font-semibold text-admin-strong">Portfolio Admin</span>
-            <span className="text-xs text-admin-muted">Project management</span>
+          <BrandMark />
+          <div className={`flex min-w-0 flex-col ${collapsed ? 'md:hidden' : ''}`}>
+            <span className="truncate font-semibold text-admin-strong">{OWNER.name}</span>
+            <span className="text-xs text-admin-muted">Portfolio admin</span>
           </div>
         </div>
 
@@ -135,7 +146,7 @@ export default function AdminShell() {
                 aria-label={collapsed ? item.label : undefined}
                 className={navClass(active)}
               >
-                <Icon d={item.icon} />
+                <Icon as={item.icon} />
                 <span className={labelClass}>{item.label}</span>
                 {tip(item.label)}
               </NavLink>
@@ -151,7 +162,7 @@ export default function AdminShell() {
             aria-label={collapsed ? 'View public site (opens in a new tab)' : undefined}
             className={navClass(false)}
           >
-            <Icon d={EXTERNAL_ICON} />
+            <Icon as={FaExternalLinkAlt} size={16} />
             <span className={labelClass}>View public site</span>
             {tip('View public site')}
           </a>
@@ -162,10 +173,21 @@ export default function AdminShell() {
             aria-expanded={!collapsed}
             className={`${navClass(false)} w-full`}
           >
-            <Icon d={collapsed ? EXPAND_ICON : COLLAPSE_ICON} />
+            <Icon as={collapsed ? FaAngleDoubleRight : FaAngleDoubleLeft} />
             <span className={labelClass}>Collapse</span>
             {tip(collapsed ? 'Expand sidebar' : 'Collapse sidebar')}
           </button>
+          <div
+            className={`mt-2 flex items-center gap-3 rounded-lg border border-admin-subtle bg-admin-card p-2 ${
+              collapsed ? 'md:justify-center md:border-0 md:bg-transparent md:p-0' : ''
+            }`}
+          >
+            <Avatar size="h-9 w-9" />
+            <div className={`min-w-0 ${collapsed ? 'md:sr-only' : ''}`}>
+              <p className="truncate text-sm font-semibold text-admin-strong">{OWNER.name}</p>
+              <p className="truncate text-xs text-admin-muted" title={user?.email}>{user?.email || OWNER.role}</p>
+            </div>
+          </div>
         </div>
         <a
           href="/"
@@ -173,7 +195,7 @@ export default function AdminShell() {
           rel="noreferrer noopener"
           className="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-admin-muted hover:text-admin-label md:hidden"
         >
-          <Icon d={EXTERNAL_ICON} />
+          <Icon as={FaExternalLinkAlt} size={16} />
           View public site
         </a>
       </aside>
@@ -199,18 +221,16 @@ export default function AdminShell() {
           </nav>
 
           <MenuButton
-            ariaLabel="Account menu"
+            ariaLabel={`Account menu for ${OWNER.name}`}
             buttonClassName="flex h-11 items-center gap-2 rounded-full border border-admin-border pl-1 pr-3 text-admin-label hover:border-admin-accent-border focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-admin-accent md:h-10"
             label={
               <>
-                <span
-                  aria-hidden="true"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-admin-accent-border bg-admin-accent-bg text-xs font-semibold text-admin-accent-text"
-                >
-                  {initials(user?.email)}
+                <Avatar />
+                <span className="hidden flex-col items-start leading-tight sm:flex">
+                  <span className="max-w-[12rem] truncate text-sm font-medium">{OWNER.name}</span>
+                  <span className="text-[11px] text-admin-muted">Administrator</span>
                 </span>
-                <span className="hidden max-w-[16rem] truncate font-medium sm:inline">{user?.email || 'Administrator'}</span>
-                <Icon d="M6 9l6 6 6-6" size={16} />
+                <Icon as={FaChevronDown} size={12} className="text-admin-muted" />
               </>
             }
             items={[

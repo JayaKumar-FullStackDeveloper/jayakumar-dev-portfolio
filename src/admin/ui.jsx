@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { FaCheck, FaExclamation, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 
 // Shared admin building blocks. Colors come from the `admin` palette in tailwind.config.js.
 // Class strings (inputClass, buttonClass, smallButtonClass) are kept alongside the components
@@ -48,9 +49,7 @@ export const Button = React.forwardRef(function Button(
       {...rest}
     >
       {loading && (
-        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-          <path d="M12 3a9 9 0 1 0 9 9" />
-        </svg>
+        <FaSpinner className="h-4 w-4 animate-spin" aria-hidden="true" />
       )}
       {children}
     </button>
@@ -345,12 +344,9 @@ export function ToastProvider({ children }) {
 /* ---------- Confirmation dialog ---------- */
 
 const DIALOG_ICONS = {
-  primary: { path: 'M5 12l5 5L20 7', tone: 'border-admin-accent-border bg-admin-accent-bg text-admin-accent' },
-  warn: { path: 'M12 8v5 M12 17h.01', tone: 'border-admin-warn-border bg-admin-warn-bg text-admin-warn-text' },
-  danger: {
-    path: 'M12 9v4 M12 17h.01 M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
-    tone: 'border-admin-danger-border bg-admin-danger-bg text-admin-danger-text',
-  },
+  primary: { glyph: FaCheck, tone: 'border-admin-accent-border bg-admin-accent-bg text-admin-accent' },
+  warn: { glyph: FaExclamation, tone: 'border-admin-warn-border bg-admin-warn-bg text-admin-warn-text' },
+  danger: { glyph: FaExclamationTriangle, tone: 'border-admin-danger-border bg-admin-danger-bg text-admin-danger-text' },
 };
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -434,9 +430,7 @@ export function ConfirmDialog({
       >
         <div className="flex gap-3">
           <span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${icon.tone}`}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d={icon.path} />
-            </svg>
+            <icon.glyph size={16} />
           </span>
           <div className="min-w-0">
             <h2 id={titleId} className="text-base font-semibold text-admin-strong">{title}</h2>
@@ -502,22 +496,25 @@ export function useConfirm() {
 
 /* ---------- Icons and menus ---------- */
 
-// 24px stroke icon from an SVG path string. Decorative: always hidden from assistive tech.
-export function Icon({ d, size = 18 }) {
+// Filled icon. Pass a react-icons component (Font Awesome solid), e.g. <Icon as={FaFolder} />.
+// Decorative: always hidden from assistive tech.
+export function Icon({ as: Glyph, size = 18, className = '' }) {
+  return <Glyph size={size} aria-hidden="true" focusable="false" className={`shrink-0 ${className}`} />;
+}
+
+/* ---------- Brand ---------- */
+
+// Portfolio owner, shown in the admin shell and account menu.
+export const OWNER = { name: 'Jayakumar', initials: 'JK', role: 'UI/UX Designer' };
+
+// Portfolio logo: "JK" monogram tile in the admin accent.
+export function BrandMark({ size = 36 }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className="shrink-0"
-    >
-      <path d={d} />
+    <svg width={size} height={size} viewBox="0 0 36 36" aria-hidden="true" focusable="false" className="shrink-0">
+      <rect x="0.5" y="0.5" width="35" height="35" rx="10" fill="rgba(45,212,191,.1)" stroke="rgba(45,212,191,.4)" />
+      <text x="18" y="23.5" textAnchor="middle" fontSize="14" fontWeight="700" letterSpacing="0.5" fill="#5EEAD4" fontFamily="Inter, 'Segoe UI', system-ui, sans-serif">
+        JK
+      </text>
     </svg>
   );
 }
