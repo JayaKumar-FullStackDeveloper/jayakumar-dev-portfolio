@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { LEGACY_PROJECTS } from '../data/legacyProjects';
+import { SAMPLE_POST } from '../data/samplePost';
 import {
   isSafeUrl,
   LINK_TYPES,
@@ -20,6 +21,7 @@ import {
   ConflictError,
   createProject,
   getProject,
+  createSamplePost,
   importLegacyProjects,
   listProjects,
   permanentlyDeleteProject,
@@ -94,6 +96,7 @@ export function ProjectsList() {
   });
 
   const legacyMissing = LEGACY_PROJECTS.some((l) => !data.projects.some((p) => p.slug === l.slug));
+  const sampleMissing = !data.projects.some((p) => p.slug === SAMPLE_POST.slug);
 
   const run = async (id, action, confirmText, successText) => {
     if (confirmText && !window.confirm(confirmText)) return;
@@ -116,6 +119,12 @@ export function ProjectsList() {
       if (count === 0) throw new Error('Nothing to import: all original projects already exist.');
     }, 'Import the original 4 projects as published Development projects?', 'Original projects imported and published.');
 
+  const runSample = () =>
+    run('sample', async () => {
+      if (!(await createSamplePost(user.uid))) throw new Error('The sample post already exists.');
+    }, 'Add and publish a sample poster post (Design → Others) so you can try the popup? You can delete it later.',
+    'Sample post published. Open the portfolio, go to Design → Others and click it.');
+
   return (
     <section aria-labelledby="projects-heading">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -123,6 +132,11 @@ export function ProjectsList() {
           Projects
         </h1>
         <div className="flex flex-wrap gap-2">
+          {data.status === 'ready' && sampleMissing && (
+            <button type="button" className={buttonClass.secondary} onClick={runSample} disabled={busyId === 'sample'}>
+              {busyId === 'sample' ? 'Adding…' : 'Add sample post'}
+            </button>
+          )}
           {data.status === 'ready' && legacyMissing && (
             <button type="button" className={buttonClass.secondary} onClick={runImport} disabled={busyId === 'import'}>
               {busyId === 'import' ? 'Importing…' : 'Import original projects'}

@@ -20,7 +20,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "test:functions": "node --test netlify/tests"
+    "test:functions": "node --test netlify/tests",
+    "deploy:rules": "npx firebase-tools deploy --only firestore:rules"
   },
   "eslintConfig": {
     "extends": [

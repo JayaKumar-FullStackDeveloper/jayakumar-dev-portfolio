@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { LEGACY_PROJECTS } from '../data/legacyProjects';
+import { SAMPLE_POST } from '../data/samplePost';
 import { parseTags, parseVideoUrl, validateProject } from '../lib/validation';
 import { auditWrite } from './auditService';
 import { listCategories, seedDefaultCategories } from './categoryService';
@@ -175,4 +176,14 @@ export async function importLegacyProjects(uid) {
     imported += 1;
   }
   return imported;
+}
+
+// Creates and publishes the sample Design post (see src/data/samplePost.js).
+// Returns the new project ID, or null if the sample already exists.
+export async function createSamplePost(uid) {
+  await seedDefaultCategories(uid); // makes sure the "Others" category exists
+  if (await isSlugTaken(SAMPLE_POST.slug)) return null;
+  const id = await createProject(SAMPLE_POST, uid);
+  await publishProject(id, uid);
+  return id;
 }

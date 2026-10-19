@@ -42,7 +42,17 @@ To revoke access, set `active` to `false`.
 
 ## 3. Security rules
 
-The rules live in `firestore.rules` in the repo. To deploy:
+The rules live in `firestore.rules` in the repo. Re-publish them whenever that file
+changes.
+
+**Option A, command line:** `firebase.json` and `.firebaserc` point at `portfolio-f3161`.
+
+```
+npx firebase-tools login          # once, opens a browser to sign in
+npm run deploy:rules              # publishes firestore.rules
+```
+
+**Option B, console:**
 
 1. Open Firestore → Rules.
 2. Replace everything with the contents of `firestore.rules`.
