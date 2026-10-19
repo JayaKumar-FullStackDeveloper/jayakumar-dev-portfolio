@@ -1,0 +1,61 @@
+/* Admin-only styles. Imported by AdminApp, so it ships in the lazy admin chunk and the public
+   site never loads it. Colors come from the `admin` palette in tailwind.config.js; this file
+   holds only what utility classes can't express. */
+
+.adm {
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* KPI "navy" tile, used only for the analytics headline numbers. */
+.adm-navy {
+  position: relative;
+  border-radius: 24px;
+  padding: 20px 24px;
+  border: 1px solid rgba(96, 140, 220, 0.35);
+  background:
+    linear-gradient(180deg, rgba(37, 64, 120, 0.32), rgba(10, 22, 48, 0.62)),
+    rgba(8, 17, 38, 0.55);
+  box-shadow:
+    0 12px 32px rgba(2, 6, 23, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transition: transform 0.25s ease-out;
+}
+
+.adm-navy:hover {
+  transform: translateY(-2px);
+}
+
+.adm-navy__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 26%;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #d6e4ff;
+}
+
+/* Skeleton rows */
+.adm-skeleton {
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(51, 65, 85, 0.5), rgba(71, 85, 105, 0.5), rgba(51, 65, 85, 0.5));
+  background-size: 200% 100%;
+}
+
+/* Reduced motion: no transitions or animations anywhere in the admin. */
+@media (prefers-reduced-motion: reduce) {
+  .adm *,
+  .adm *::before,
+  .adm *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .adm-navy:hover {
+    transform: none;
+  }
+}

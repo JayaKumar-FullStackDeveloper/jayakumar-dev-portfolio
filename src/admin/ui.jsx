@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 // Shared admin styles and small building blocks (same slate/teal palette as the public site).
 
@@ -75,6 +75,136 @@ export function StatusBadge({ project }) {
 export function formatDate(timestamp) {
   const date = timestamp?.toDate?.();
   return date ? date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+}
+
+// 24px stroke icon from an SVG path string. Decorative: always hidden from assistive tech.
+export function Icon({ d, size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
+// Button that opens a menu of actions. Keyboard: Enter/Space/ArrowDown open, arrows move,
+// Home/End jump, Escape closes and returns focus to the button, Tab closes.
+// items: [{ label, onSelect?, href?, tone?: 'danger', disabled? }]
+export function MenuButton({ label, ariaLabel, items, buttonClassName, align = 'right' }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const buttonRef = useRef(null);
+  const itemRefs = useRef([]);
+
+  const close = (returnFocus = true) => {
+    setOpen(false);
+    if (returnFocus) buttonRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointerDown = (e) => {
+      if (!rootRef.current?.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open]);
+
+  const enabled = () => itemRefs.current.filter((el) => el && !el.disabled);
+  const focusItem = (index) => {
+    const list = enabled();
+    if (list.length) list[(index + list.length) % list.length].focus();
+  };
+
+  const onButtonKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setOpen(true);
+      setTimeout(() => focusItem(0), 0);
+    }
+  };
+
+  const onMenuKeyDown = (e) => {
+    const list = enabled();
+    const index = list.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') focusItem(index + 1);
+    else if (e.key === 'ArrowUp') focusItem(index - 1);
+    else if (e.key === 'Home') focusItem(0);
+    else if (e.key === 'End') focusItem(list.length - 1);
+    else if (e.key === 'Escape') close();
+    else if (e.key === 'Tab') close(false);
+    else return;
+    if (e.key !== 'Tab') e.preventDefault();
+  };
+
+  const itemClass = (item) =>
+    `flex w-full items-center rounded-md px-3 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-admin-accent disabled:cursor-not-allowed disabled:opacity-50 ${
+      item.tone === 'danger' ? 'text-admin-danger-text hover:bg-admin-danger-bg' : 'text-admin-label hover:bg-slate-800'
+    }`;
+
+  return (
+    <div ref={rootRef} className="relative inline-block">
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={onButtonKeyDown}
+        className={buttonClassName}
+      >
+        {label}
+      </button>
+      {open && (
+        <div
+          role="menu"
+          aria-label={ariaLabel}
+          onKeyDown={onMenuKeyDown}
+          className={`absolute z-30 mt-1 min-w-44 rounded-lg border border-admin-border bg-admin-app p-1 shadow-overlay ${
+            align === 'right' ? 'right-0' : 'left-0'
+          }`}
+        >
+          {items.map((item, i) => {
+            const common = {
+              role: 'menuitem',
+              tabIndex: -1,
+              ref: (el) => (itemRefs.current[i] = el),
+              className: itemClass(item),
+            };
+            return item.href ? (
+              <a key={item.label} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer noopener' : undefined} {...common} onClick={() => setOpen(false)}>
+                {item.label}
+              </a>
+            ) : (
+              <button
+                key={item.label}
+                type="button"
+                disabled={item.disabled}
+                {...common}
+                onClick={() => {
+                  close(false);
+                  item.onSelect?.();
+                }}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Signed-in admin session, provided by AdminApp.

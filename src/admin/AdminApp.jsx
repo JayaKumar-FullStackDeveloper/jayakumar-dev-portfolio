@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { isFirebaseConfigured } from '../lib/firebaseConfig';
 import { isActiveAdmin, requestPasswordReset, signIn, signOutUser, watchAuth } from '../services/authService';
 import { markAdminDevice } from '../services/analyticsService';
@@ -8,6 +8,8 @@ import { ProjectEditor, ProjectsList } from './ProjectsAdmin';
 import CategoriesAdmin from './CategoriesAdmin';
 import AnalyticsAdmin from './AnalyticsAdmin';
 import MediaAdmin from './MediaAdmin';
+import AdminShell from './AdminShell';
+import './admin.css';
 
 // Private admin area, mounted at /admin/*. Not linked from the public site.
 // Route guards here are for UX only; Firestore Security Rules are the security boundary.
@@ -29,9 +31,20 @@ function useNoIndex() {
   }, []);
 }
 
+// Inter is loaded here, not in index.html, so the public site never requests it for the admin.
+function useAdminFont() {
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+    document.head.appendChild(link);
+    return () => link.remove();
+  }, []);
+}
+
 function Screen({ children }) {
   return (
-    <div className="min-h-screen bg-slate-900 px-4 py-10 text-slate-300 antialiased selection:bg-teal-300 selection:text-teal-900">
+    <div className="adm min-h-screen bg-admin-app font-admin text-admin-body antialiased selection:bg-teal-300 selection:text-teal-900">
       {children}
     </div>
   );
@@ -39,9 +52,11 @@ function Screen({ children }) {
 
 function CenteredCard({ title, children }) {
   return (
-    <div className="mx-auto mt-10 max-w-sm rounded-lg border border-slate-700 bg-slate-800/30 p-6">
-      <h1 className="mb-4 text-xl font-bold text-teal-300">{title}</h1>
-      {children}
+    <div className="px-4 py-10">
+      <div className="mx-auto mt-10 max-w-sm rounded-lg border border-admin-border bg-admin-card p-6">
+        <h1 className="mb-4 text-xl font-bold text-admin-heading">{title}</h1>
+        {children}
+      </div>
     </div>
   );
 }
@@ -120,7 +135,7 @@ function SessionError() {
 function RequireAdmin() {
   const { status } = useSession();
   const location = useLocation();
-  if (status === 'loading') return <p className="text-center text-sm" role="status">Checking your session…</p>;
+  if (status === 'loading') return <p className="p-10 text-center text-sm" role="status">Checking your session…</p>;
   if (status === 'signedOut') return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />;
   if (status === 'denied') return <AccessDenied />;
   if (status === 'error') return <SessionError />;
@@ -222,48 +237,9 @@ function LoginPage() {
   );
 }
 
-function AdminLayout() {
-  const { user } = useSession();
-  const navClass = ({ isActive }) =>
-    `rounded-full px-3 py-1 text-sm font-medium ${isActive ? 'bg-teal-400/10 text-teal-200' : 'text-slate-400 hover:text-teal-300'}`;
-
-  return (
-    <div className="mx-auto max-w-5xl">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-slate-700 pb-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <span className="text-lg font-bold text-slate-200">Portfolio admin</span>
-          <nav className="flex gap-1" aria-label="Admin">
-            <NavLink to="/admin" end className={navClass}>
-              Projects
-            </NavLink>
-            <NavLink to="/admin/categories" className={navClass}>
-              Categories
-            </NavLink>
-            <NavLink to="/admin/media" className={navClass}>
-              Media
-            </NavLink>
-            <NavLink to="/admin/analytics" className={navClass}>
-              Analytics
-            </NavLink>
-          </nav>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <a href="/" target="_blank" rel="noreferrer noopener" className="text-slate-400 hover:text-teal-300">
-            View site
-          </a>
-          <span className="text-slate-500">{user?.email}</span>
-          <button type="button" className={buttonClass.secondary} onClick={signOutUser}>
-            Sign out
-          </button>
-        </div>
-      </header>
-      <Outlet />
-    </div>
-  );
-}
-
 export default function AdminApp() {
   useNoIndex();
+  useAdminFont();
 
   if (!isFirebaseConfigured) {
     return (
@@ -283,7 +259,7 @@ export default function AdminApp() {
         <Routes>
           <Route path="login" element={<LoginPage />} />
           <Route element={<RequireAdmin />}>
-            <Route element={<AdminLayout />}>
+            <Route element={<AdminShell />}>
               <Route index element={<ProjectsList />} />
               <Route path="projects/new" element={<ProjectEditor />} />
               <Route path="projects/:id" element={<ProjectEditor />} />
