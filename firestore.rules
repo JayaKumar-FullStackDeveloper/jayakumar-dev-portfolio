@@ -1,0 +1,317 @@
+rules_version = '2';
+
+// Portfolio project-management module — Firestore Security Rules.
+// Deny by default. Public visitors can read published projects and active categories only.
+// Only active admins (admins/{uid} with role "admin" and active true) can write.
+// Rules are not filters: public queries must include where('status', '==', 'published')
+// and where('active', '==', true), or they are rejected.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function adminDoc() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && adminDoc().data.active == true
+        && adminDoc().data.role == "admin";
+    }
+
+    function isSlug(value) {
+      return value is string && value.size() <= 80 && value.matches('[a-z0-9]+(-[a-z0-9]+)*');
+    }
+
+    function isHttpsUrl(value) {
+      return value is string && value.size() <= 2000 && value.matches('https://[^ "<>]+');
+    }
+
+    function isPublishedProject(projectId) {
+      return exists(/databases/$(database)/documents/projects/$(projectId))
+        && get(/databases/$(database)/documents/projects/$(projectId)).data.status == "published";
+    }
+
+    // ---------- admins: provisioned only through the Firebase console ----------
+    match /admins/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    // ---------- projects ----------
+    function publishable(d) {
+      return d.shortDescription.size() > 0
+        && d.categoryIds.size() > 0
+        && d.coverMedia != null
+        && isHttpsUrl(d.coverMedia.url)
+        && d.deletedAt == null;
+    }
+
+    function validProject(d) {
+      return d.keys().hasOnly([
+          "title", "slug", "type", "shortDescription", "description", "categoryIds", "techStack",
+          "coverMedia", "media", "links", "projectUrl", "featured", "sortOrder", "status",
+          "createdAt", "updatedAt", "publishedAt", "createdBy", "updatedBy", "deletedAt",
+          "display", "gallery"
+        ])
+        && d.keys().hasAll([
+          "title", "slug", "type", "shortDescription", "categoryIds", "techStack", "coverMedia",
+          "featured", "sortOrder", "status", "createdAt", "updatedAt", "createdBy", "updatedBy", "deletedAt"
+        ])
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 120
+        && isSlug(d.slug)
+        && d.type in ["Design", "Development"]
+        && d.shortDescription is string && d.shortDescription.size() <= 300
+        && (!("description" in d) || (d.description is string && d.description.size() <= 5000))
+        && d.categoryIds is list && d.categoryIds.size() <= 5
+        && d.techStack is list && d.techStack.size() <= 20
+        && (d.coverMedia == null || (d.coverMedia is map && isHttpsUrl(d.coverMedia.url)))
+        && (!("media" in d) || (d.media is list && d.media.size() <= 20))
+        && (!("links" in d) || (d.links is list && d.links.size() <= 10))
+        && (!("projectUrl" in d) || d.projectUrl == "" || isHttpsUrl(d.projectUrl))
+        && (!("display" in d) || d.display in ["link", "gallery"])
+        && (!("gallery" in d) || (d.gallery is list && d.gallery.size() <= 20))
+        && d.featured is bool
+        && d.sortOrder is number
+        && d.status in ["draft", "published", "archived"]
+        && d.updatedAt == request.time
+        && d.updatedBy == request.auth.uid
+        && (d.status != "published" || publishable(d));
+    }
+
+    match /projects/{projectId} {
+      allow get, list: if resource.data.status == "published" || isAdmin();
+
+      allow create: if isAdmin()
+        && validProject(request.resource.data)
+        && request.resource.data.status == "draft"
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+
+      allow update: if isAdmin()
+        && validProject(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy;
+
+      // Permanent deletion only after a soft delete.
+      allow delete: if isAdmin() && resource.data.deletedAt != null;
+    }
+
+    // ---------- categories (document ID == slug) ----------
+    function validCategory(d, categoryId) {
+      return d.keys().hasOnly(["name", "slug", "description", "projectTypes", "active", "sortOrder", "createdAt", "updatedAt"])
+        && d.keys().hasAll(["name", "slug", "projectTypes", "active", "sortOrder", "createdAt", "updatedAt"])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && isSlug(d.slug) && d.slug == categoryId
+        && (!("description" in d) || (d.description is string && d.description.size() <= 300))
+        && d.projectTypes is list && d.projectTypes.size() > 0
+        && d.projectTypes.hasOnly(["Design", "Development"])
+        && d.active is bool
+        && d.sortOrder is number
+        && d.updatedAt == request.time;
+    }
+
+    match /categories/{categoryId} {
+      allow get, list: if resource.data.active == true || isAdmin();
+      allow create: if isAdmin()
+        && validCategory(request.resource.data, categoryId)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+        && validCategory(request.resource.data, categoryId)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- tech stack & skills (public reads active items only) ----------
+    function isIconKey(value) {
+      return value is string && value.matches('[a-z0-9-]{0,40}');
+    }
+
+    function validTechCategory(d, categoryId) {
+      return d.keys().hasOnly(["name", "slug", "icon", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.keys().hasAll(["name", "slug", "icon", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && isSlug(d.slug) && d.slug == categoryId
+        && isIconKey(d.icon)
+        && d.sortOrder is number
+        && d.isActive is bool
+        && d.updatedAt == request.time;
+    }
+
+    match /techCategories/{categoryId} {
+      allow get, list: if resource.data.isActive == true || isAdmin();
+      allow create: if isAdmin()
+        && validTechCategory(request.resource.data, categoryId)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+        && validTechCategory(request.resource.data, categoryId)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    // Logo file in Cloudinary: { url, publicId, source, iconKey } or null.
+    function validLogo(logo) {
+      return logo == null || (
+        logo is map
+        && logo.keys().hasOnly(["url", "publicId", "source", "iconKey"])
+        && logo.keys().hasAll(["url", "publicId", "source"])
+        && isHttpsUrl(logo.url) && logo.url.matches('https://res[.]cloudinary[.]com/.*')
+        && logo.publicId is string && logo.publicId.size() <= 255
+        && logo.source in ["builtin", "custom"]
+        && (!("iconKey" in logo) || isIconKey(logo.iconKey))
+      );
+    }
+
+    function validTechSkill(d) {
+      return d.keys().hasOnly(["categoryId", "name", "slug", "icon", "iconUrl", "iconSvg", "logoDefault", "logoHover", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.keys().hasAll(["categoryId", "name", "slug", "icon", "iconUrl", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.categoryId is string
+        && existsAfter(/databases/$(database)/documents/techCategories/$(d.categoryId))
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && isSlug(d.slug)
+        && isIconKey(d.icon)
+        && d.iconUrl is string && (d.iconUrl == "" || isHttpsUrl(d.iconUrl))
+        && (!("iconSvg" in d) || (d.iconSvg is string && d.iconSvg.size() <= 20000))
+        && (!("logoDefault" in d) || validLogo(d.logoDefault))
+        && (!("logoHover" in d) || validLogo(d.logoHover))
+        && d.sortOrder is number
+        && d.isActive is bool
+        && d.updatedAt == request.time;
+    }
+
+    match /techSkills/{skillId} {
+      allow get, list: if resource.data.isActive == true || isAdmin();
+      allow create: if isAdmin()
+        && validTechSkill(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+        && validTechSkill(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    // Marks that the starter tech stack was created, so seeding never repeats.
+    match /techStackMeta/{docId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && docId == "seed"
+        && request.resource.data.keys().hasOnly(["seededAt", "seededBy"])
+        && request.resource.data.seededBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // ---------- resumes: PDFs in Cloudinary; exactly one can be published ----------
+    function resumePointer() {
+      return /databases/$(database)/documents/siteSettings/resume;
+    }
+
+    function validResume(d) {
+      return d.keys().hasOnly(["title", "fileName", "url", "publicId", "sizeBytes", "createdAt", "updatedAt", "createdBy", "updatedBy"])
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 120
+        && d.fileName is string && d.fileName.size() <= 200
+        && isHttpsUrl(d.url) && d.url.matches('https://res[.]cloudinary[.]com/.*')
+        && d.publicId is string && d.publicId.size() <= 255
+        && d.sizeBytes is number
+        && d.updatedAt == request.time
+        && d.updatedBy == request.auth.uid;
+    }
+
+    match /resumes/{resumeId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && validResume(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+      // Only the name can change; the file stays the same.
+      allow update: if isAdmin()
+        && validResume(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["title", "updatedAt", "updatedBy"]);
+      // The published resume can't be deleted: unpublish it or publish another first.
+      allow delete: if isAdmin()
+        && (!exists(resumePointer()) || get(resumePointer()).data.resumeId != resumeId);
+    }
+
+    // The single published resume. Publishing another resume replaces this document,
+    // so two resumes can never be published at once.
+    match /siteSettings/resume {
+      allow get: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(["resumeId", "title", "url", "fileName", "updatedAt", "updatedBy"])
+        && request.resource.data.resumeId is string
+        && exists(/databases/$(database)/documents/resumes/$(request.resource.data.resumeId))
+        && request.resource.data.url == get(/databases/$(database)/documents/resumes/$(request.resource.data.resumeId)).data.url
+        && request.resource.data.title is string && request.resource.data.title.size() <= 120
+        && request.resource.data.fileName is string && request.resource.data.fileName.size() <= 200
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- audit trail: append-only, admins only ----------
+    match /auditEvents/{eventId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(["actor", "action", "entityType", "entityId", "createdAt"])
+        && request.resource.data.actor == request.auth.uid
+        && request.resource.data.action is string && request.resource.data.action.size() <= 40
+        && request.resource.data.entityType in ["project", "category", "tech-category", "tech-skill", "resume"]
+        && request.resource.data.entityId is string && request.resource.data.entityId.size() <= 128
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // ---------- analytics: public append-only events for published projects ----------
+    match /analyticsEvents/{eventId} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.keys().hasAll(["projectId", "type", "createdAt"])
+        && request.resource.data.keys().hasOnly(["projectId", "type", "createdAt", "target", "visitorId"])
+        && request.resource.data.projectId is string
+        && request.resource.data.type in ["view", "outbound_click"]
+        && request.resource.data.createdAt == request.time
+        && isPublishedProject(request.resource.data.projectId)
+        && (!("target" in request.resource.data)
+          || (request.resource.data.target is string && request.resource.data.target.size() <= 500))
+        && (!("visitorId" in request.resource.data)
+          || (request.resource.data.visitorId is string && request.resource.data.visitorId.size() <= 128));
+      allow update, delete: if false;
+    }
+
+    // ---------- media metadata (no file bytes; files live in Cloudinary) ----------
+    function validMedia(d) {
+      return d.keys().hasOnly([
+          "provider", "publicId", "url", "resourceType", "format", "contentType", "sizeBytes",
+          "width", "height", "duration", "filename", "altText", "createdAt", "createdBy"
+        ])
+        && d.provider == "cloudinary"
+        && d.publicId is string && d.publicId.size() <= 255
+        && isHttpsUrl(d.url) && d.url.matches('https://res[.]cloudinary[.]com/.*')
+        && d.resourceType in ["image", "video"]
+        && d.sizeBytes is number
+        && d.filename is string && d.filename.size() <= 200
+        && d.altText is string && d.altText.size() <= 200;
+    }
+
+    match /media/{mediaId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && validMedia(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+      // Only the alt text can change after upload.
+      allow update: if isAdmin()
+        && validMedia(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["altText"]);
+      allow delete: if isAdmin();
+    }
+
+    // ---------- everything else ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

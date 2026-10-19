@@ -1,0 +1,352 @@
+{
+  "react": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437740/PortFolio/tech-stack/default/default-react.svg",
+      "publicId": "PortFolio/tech-stack/default/default-react"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437742/PortFolio/tech-stack/hover/hover-react.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-react"
+    }
+  },
+  "nextjs": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437743/PortFolio/tech-stack/default/default-nextjs.svg",
+      "publicId": "PortFolio/tech-stack/default/default-nextjs"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437745/PortFolio/tech-stack/hover/hover-nextjs.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-nextjs"
+    }
+  },
+  "nodejs": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437747/PortFolio/tech-stack/default/default-nodejs.svg",
+      "publicId": "PortFolio/tech-stack/default/default-nodejs"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437748/PortFolio/tech-stack/hover/hover-nodejs.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-nodejs"
+    }
+  },
+  "express": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437750/PortFolio/tech-stack/default/default-express.svg",
+      "publicId": "PortFolio/tech-stack/default/default-express"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437752/PortFolio/tech-stack/hover/hover-express.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-express"
+    }
+  },
+  "javascript": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437753/PortFolio/tech-stack/default/default-javascript.svg",
+      "publicId": "PortFolio/tech-stack/default/default-javascript"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437755/PortFolio/tech-stack/hover/hover-javascript.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-javascript"
+    }
+  },
+  "typescript": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437757/PortFolio/tech-stack/default/default-typescript.svg",
+      "publicId": "PortFolio/tech-stack/default/default-typescript"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437758/PortFolio/tech-stack/hover/hover-typescript.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-typescript"
+    }
+  },
+  "html5": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437760/PortFolio/tech-stack/default/default-html5.svg",
+      "publicId": "PortFolio/tech-stack/default/default-html5"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437762/PortFolio/tech-stack/hover/hover-html5.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-html5"
+    }
+  },
+  "css3": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437764/PortFolio/tech-stack/default/default-css3.svg",
+      "publicId": "PortFolio/tech-stack/default/default-css3"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437766/PortFolio/tech-stack/hover/hover-css3.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-css3"
+    }
+  },
+  "tailwind": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437768/PortFolio/tech-stack/default/default-tailwind.svg",
+      "publicId": "PortFolio/tech-stack/default/default-tailwind"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437769/PortFolio/tech-stack/hover/hover-tailwind.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-tailwind"
+    }
+  },
+  "mongodb": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437771/PortFolio/tech-stack/default/default-mongodb.svg",
+      "publicId": "PortFolio/tech-stack/default/default-mongodb"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437772/PortFolio/tech-stack/hover/hover-mongodb.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-mongodb"
+    }
+  },
+  "mysql": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437774/PortFolio/tech-stack/default/default-mysql.svg",
+      "publicId": "PortFolio/tech-stack/default/default-mysql"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437776/PortFolio/tech-stack/hover/hover-mysql.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-mysql"
+    }
+  },
+  "firebase": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437778/PortFolio/tech-stack/default/default-firebase.svg",
+      "publicId": "PortFolio/tech-stack/default/default-firebase"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437779/PortFolio/tech-stack/hover/hover-firebase.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-firebase"
+    }
+  },
+  "openai": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437781/PortFolio/tech-stack/default/default-openai.svg",
+      "publicId": "PortFolio/tech-stack/default/default-openai"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437783/PortFolio/tech-stack/hover/hover-openai.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-openai"
+    }
+  },
+  "claude": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437785/PortFolio/tech-stack/default/default-claude.svg",
+      "publicId": "PortFolio/tech-stack/default/default-claude"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437786/PortFolio/tech-stack/hover/hover-claude.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-claude"
+    }
+  },
+  "gemini": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437788/PortFolio/tech-stack/default/default-gemini.svg",
+      "publicId": "PortFolio/tech-stack/default/default-gemini"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437790/PortFolio/tech-stack/hover/hover-gemini.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-gemini"
+    }
+  },
+  "copilot": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437792/PortFolio/tech-stack/default/default-copilot.svg",
+      "publicId": "PortFolio/tech-stack/default/default-copilot"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437794/PortFolio/tech-stack/hover/hover-copilot.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-copilot"
+    }
+  },
+  "figma": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437795/PortFolio/tech-stack/default/default-figma.svg",
+      "publicId": "PortFolio/tech-stack/default/default-figma"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437797/PortFolio/tech-stack/hover/hover-figma.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-figma"
+    }
+  },
+  "framer": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437799/PortFolio/tech-stack/default/default-framer.svg",
+      "publicId": "PortFolio/tech-stack/default/default-framer"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437801/PortFolio/tech-stack/hover/hover-framer.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-framer"
+    }
+  },
+  "photoshop": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437802/PortFolio/tech-stack/default/default-photoshop.svg",
+      "publicId": "PortFolio/tech-stack/default/default-photoshop"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437803/PortFolio/tech-stack/hover/hover-photoshop.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-photoshop"
+    }
+  },
+  "illustrator": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437805/PortFolio/tech-stack/default/default-illustrator.svg",
+      "publicId": "PortFolio/tech-stack/default/default-illustrator"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437807/PortFolio/tech-stack/hover/hover-illustrator.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-illustrator"
+    }
+  },
+  "xd": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437809/PortFolio/tech-stack/default/default-xd.svg",
+      "publicId": "PortFolio/tech-stack/default/default-xd"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437811/PortFolio/tech-stack/hover/hover-xd.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-xd"
+    }
+  },
+  "after-effects": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437812/PortFolio/tech-stack/default/default-after-effects.svg",
+      "publicId": "PortFolio/tech-stack/default/default-after-effects"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437815/PortFolio/tech-stack/hover/hover-after-effects.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-after-effects"
+    }
+  },
+  "premiere-pro": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437816/PortFolio/tech-stack/default/default-premiere-pro.svg",
+      "publicId": "PortFolio/tech-stack/default/default-premiere-pro"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437817/PortFolio/tech-stack/hover/hover-premiere-pro.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-premiere-pro"
+    }
+  },
+  "lightroom": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437820/PortFolio/tech-stack/default/default-lightroom.svg",
+      "publicId": "PortFolio/tech-stack/default/default-lightroom"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437821/PortFolio/tech-stack/hover/hover-lightroom.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-lightroom"
+    }
+  },
+  "git": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437823/PortFolio/tech-stack/default/default-git.svg",
+      "publicId": "PortFolio/tech-stack/default/default-git"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437825/PortFolio/tech-stack/hover/hover-git.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-git"
+    }
+  },
+  "github": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437827/PortFolio/tech-stack/default/default-github.svg",
+      "publicId": "PortFolio/tech-stack/default/default-github"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437828/PortFolio/tech-stack/hover/hover-github.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-github"
+    }
+  },
+  "docker": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437831/PortFolio/tech-stack/default/default-docker.svg",
+      "publicId": "PortFolio/tech-stack/default/default-docker"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437832/PortFolio/tech-stack/hover/hover-docker.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-docker"
+    }
+  },
+  "aws": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437833/PortFolio/tech-stack/default/default-aws.svg",
+      "publicId": "PortFolio/tech-stack/default/default-aws"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437835/PortFolio/tech-stack/hover/hover-aws.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-aws"
+    }
+  },
+  "vscode": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437837/PortFolio/tech-stack/default/default-vscode.svg",
+      "publicId": "PortFolio/tech-stack/default/default-vscode"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437838/PortFolio/tech-stack/hover/hover-vscode.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-vscode"
+    }
+  },
+  "postman": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437840/PortFolio/tech-stack/default/default-postman.svg",
+      "publicId": "PortFolio/tech-stack/default/default-postman"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437841/PortFolio/tech-stack/hover/hover-postman.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-postman"
+    }
+  },
+  "vercel": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437843/PortFolio/tech-stack/default/default-vercel.svg",
+      "publicId": "PortFolio/tech-stack/default/default-vercel"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437845/PortFolio/tech-stack/hover/hover-vercel.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-vercel"
+    }
+  },
+  "netlify": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437846/PortFolio/tech-stack/default/default-netlify.svg",
+      "publicId": "PortFolio/tech-stack/default/default-netlify"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437848/PortFolio/tech-stack/hover/hover-netlify.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-netlify"
+    }
+  },
+  "kubernetes": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437851/PortFolio/tech-stack/default/default-kubernetes.svg",
+      "publicId": "PortFolio/tech-stack/default/default-kubernetes"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437853/PortFolio/tech-stack/hover/hover-kubernetes.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-kubernetes"
+    }
+  },
+  "jenkins": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437854/PortFolio/tech-stack/default/default-jenkins.svg",
+      "publicId": "PortFolio/tech-stack/default/default-jenkins"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437856/PortFolio/tech-stack/hover/hover-jenkins.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-jenkins"
+    }
+  },
+  "linux": {
+    "default": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437858/PortFolio/tech-stack/default/default-linux.svg",
+      "publicId": "PortFolio/tech-stack/default/default-linux"
+    },
+    "hover": {
+      "url": "https://res.cloudinary.com/duurpdqpr/image/upload/v1792437865/PortFolio/tech-stack/hover/hover-linux.svg",
+      "publicId": "PortFolio/tech-stack/hover/hover-linux"
+    }
+  }
+}

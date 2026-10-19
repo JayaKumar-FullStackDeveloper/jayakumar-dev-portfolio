@@ -1,4 +1,3 @@
-import "./App.css";
 import React, { useEffect, useState, useRef } from "react";
 import About from "./components/about";
 import Experiance from "./components/experiance";
@@ -6,10 +5,10 @@ import ProjectsPage from "./components/projects";
 import Footer from "./components/footer";
 import Contact from "./components/contact";
 import IconMarquee from "./components/skills";
-import { Link } from "react-router-dom";
+import Hero from "./components/hero";
 
 function App() {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const spotlightRef = useRef(null); // Updated directly on mouse move to avoid re-rendering
   const [activeSection, setActiveSection] = useState("");
   const sections = useRef([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,7 +31,9 @@ function App() {
 
   useEffect(() => {
     const handleMouseMove = (event) => {
-      setPosition({ x: event.clientX, y: event.clientY });
+      if (spotlightRef.current) {
+        spotlightRef.current.style.background = `radial-gradient(500px at ${event.clientX}px ${event.clientY}px, rgba(29, 78, 216, 0.15), transparent 80%)`;
+      }
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -40,7 +41,7 @@ function App() {
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -88,12 +89,8 @@ function App() {
     }
   };
 
-  const gradientStyle = {
-    background: `radial-gradient(500px at ${position.x}px ${position.y}px, rgba(29, 78, 216, 0.15), transparent 80%)`,
-  };
-
   const menuItems = [
-    { id: "/", label: "JK ! Dev" },
+    { id: "/", label: "About" },
     { id: "experience", label: "Experience" },
     { id: "skills", label: "Tech Stack & Skills" },
     { id: "projects", label: "Projects" },
@@ -104,8 +101,8 @@ function App() {
     <div className="bg-slate-900 leading-relaxed text-slate-400 antialiased selection:bg-teal-300 selection:text-teal-900 lg:w-screen lg:h-screen sm:h-full">
       <div className="relative lg:w-full sm:w-screen h-full">
         <div
+          ref={spotlightRef}
           className="absolute inset-0 z-0 transition duration-300"
-          style={gradientStyle}
         ></div>
         {/* Mobile Header */}
         <div className="w-full bg-slate-900 border-b-2 border-spacing-1 border-slate-500 lg:hidden fixed top-0 py-2 px-6 z-40">
@@ -126,13 +123,7 @@ function App() {
         {isMenuOpen && (
           <nav ref={menuRef} className="lg:hidden fixed top-10 right-0 w-full bg-slate-900 shadow-md z-40">
             <ul className="flex flex-col mt-2">
-              {[
-                { id: "/", label: "About" },
-                { id: "experience", label: "Experience" },
-                { id: "skills", label: "Tech Stack & Skills" },
-                { id: "projects", label: "Projects" },
-                { id: "contact", label: "Contact" },
-              ].map((item) => (
+              {menuItems.map((item) => (
                 <li key={item.id} className="border-b border-gray-200">
                   <button
                     className={`group flex items-center py-3 px-4 w-full text-left ${activeSection === item.id ? "active" : ""}`}
@@ -158,7 +149,7 @@ function App() {
           </nav>
         )}
         <div className="relative z-10 mx-auto max-w-screen-xl px-6 py-12 font-sans md:px-12 md:py-20 lg:px-20 lg:py-0 h-full">
-          <div className="lg:flex lg:justify-between lg:gap-2 h-full lg:py-16">
+          <div className="lg:flex lg:justify-between lg:gap-2 h-full lg:py-8">
             <header className="lg:sticky lg:top-0 lg:flex-col sm:flex-row flex-row lg:justify-between lg:w-5/12 md:w-full sm:w-full h-full lg:py-10 sm:h-auto">
               <div>
                 <div>
@@ -166,7 +157,7 @@ function App() {
                     <a href="/">Jayakumar</a>
                   </h1>
                   <h2 className="mt-3 text-lg font-medium tracking-tight text-slate-200 sm:text-xl">
-                    Full Stack Developer
+                    UI/UX Designer
                   </h2>
                   <p className="lg:mt-4 mt-3 max-w-xs leading-normal">
                     I build pixel-perfect, engaging, and accessible digital
@@ -179,13 +170,7 @@ function App() {
                   aria-label="In-page jump links"
                 >
                   <ul className="mt-16 w-max">
-                    {[
-                      { id: "/", label: "About" },
-                      { id: "experience", label: "Experience" },
-                      { id: "skills", label: "Tech Stack & Skills" },
-                      { id: "projects", label: "Projects" },
-                      { id: "contact", label: "Contact" },
-                    ].map((item) => (
+                    {menuItems.map((item) => (
                       <li key={item.id} className="relative group">
                         <button
                           className={`group flex items-center py-3 ${activeSection === item.id ? "active" : ""
@@ -278,6 +263,29 @@ function App() {
                       </svg>
                     </a>
                   </li>
+                  <li className="mr-5 text-xs shrink-0">
+                    <a
+                      className="block hover:text-slate-200"
+                      href="https://www.behance.net/Jayakumar_JK"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      aria-label="Behance (opens in a new tab)"
+                      title="Behance"
+                    >
+                      <span className="sr-only">Behance</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 333333 333333"
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        className="h-9 w-9"
+                        aria-hidden="true"
+                      >
+                        <path d="M166667 0c92048 0 166667 74619 166667 166667s-74619 166667-166667 166667S0 258715 0 166667 74619 0 166667 0zm-35027 114428c4916 0 9342 427 13375 1305 4044 843 7461 2281 10360 4232 2865 1958 5075 4564 6709 7815 1564 3220 2345 7260 2345 12046 0 5180-1166 9474-3521 12933-2376 3450-5826 6254-10456 8472 6315 1822 10976 5014 14102 9544 3124 4564 4626 10034 4626 16475 0 5211-1012 9670-2989 13449-2019 3813-4755 6903-8106 9285-3386 2407-7294 4167-11662 5306-4336 1133-8796 1726-13407 1726l-49734 1V114437l48363 3-6-13v1zm60464 8276h41592v10132l-41592-3v-10132 3zm9243 76465c3066 2989 7461 4491 13197 4491 4103 0 7691-1047 10649-3130 2958-2084 4755-4290 5441-6574l17971 3c-2900 8950-7263 15308-13252 19152-5901 3844-13121 5796-21498 5796-5869 0-11107-952-15831-2807-4722-1887-8661-4521-11985-7983-3222-3450-5761-7553-7556-12376-1761-4782-2665-10098-2665-15828 0-5568 917-10748 2730-15536 1856-4826 4398-8953 7783-12444 3382-3487 7356-6254 12049-8272 4660-2022 9806-3035 15505-3035 6281 0 11785 1210 16509 3681 4691 2438 8565 5731 11594 9837 3034 4109 5179 8826 6515 14099 1335 5272 1791 10775 1425 16548l-53633-2c0 5826 1958 11403 5044 14358l6 22v-1zm23418-39010c-2407-2668-6546-4136-11526-4136-3263 0-5958 550-8106 1658-2115 1102-3844 2469-5179 4103-1302 1628-2219 3389-2728 5238-520 1791-843 3450-951 4888l33224-3c-489-5207-2281-9052-4721-11753l-12 6-1-1zm-96065-4306c4002 0 7322-951 9926-2869 2604-1887 3844-5014 3844-9316 0-2372-424-4367-1272-5900-874-1530-2022-2739-3483-3582-1437-875-3059-1472-4976-1794-1856-354-3813-517-5795-517h-21100v23967h22864l-6 11h-1zm1238 43671c2222 0 4336-198 6309-659 2019-455 3813-1135 5306-2175 1499-1012 2772-2342 3678-4103 917-1729 1335-3939 1335-6639 0-5272-1502-9055-4460-11338-2957-2253-6898-3355-11781-3355h-24489v28229l24102-2v43z" />
+                      </svg>
+                    </a>
+                  </li>
                 </ul>
               </div>
             </header>
@@ -285,6 +293,7 @@ function App() {
               className="lg:px-6 lg:w-7/12 h-full overflow-y-auto transition duration-300 relative"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
+              <Hero />
               <section
                 id="/"
                 ref={(el) => (sections.current[0] = el)}
@@ -312,18 +321,8 @@ function App() {
               <section
                 id="projects"
                 ref={(el) => (sections.current[3] = el)}
-                className="mt-4"
+                className="mt-4 scroll-mt-16 lg:scroll-mt-0"
               >
-                <div className="flex justify-between self-center py-2 mb-2">
-                <h1 className="z-10 text-xl font-bold text-teal-300 self-center h-full ">Projects</h1>
-                  <Link className="inline-flex items-baseline self-center leading-tight hover:text-teal-300 focus-visible:text-teal-300 font-semibold text-slate-200 group/link text-base" href="https://storage.googleapis.com/jayakumar/Jayakumar-MERN%20Stack%20Developer.pdf " target="_blank" rel="noreferrer noopener" aria-label="View Full Project">
-                    <span>View more Project
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="inline-block h-4 w-4 shrink-0 transition-transform group-hover/link:-translate-y-1 group-hover/link:translate-x-1 group-focus-visible/link:-translate-y-1 group-focus-visible/link:translate-x-1 motion-reduce:transition-none ml-1 translate-y-px" aria-hidden="true">
-                        <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clipRule="evenodd"></path>
-                      </svg>
-                    </span>
-                  </Link>                
-                </div>
                 <ProjectsPage />
               </section>
               <section

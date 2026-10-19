@@ -1,0 +1,390 @@
+/* ==========================================================================
+   Hero — "UI/UX DESIGNER" poster
+   The stage scales with its column. Every position comes from the
+   1254 × 1254 reference poster: 1cqw = 12.54 poster pixels.
+   Layers (z): light 0 · headline 1 · orbit 2 · phones 3 · desktop 4 ·
+               portrait 5 · annotations 6
+   ========================================================================== */
+
+.ph {
+  --ph-neon: 59, 130, 246;
+  --ph-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ph-ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ph-bleed: 24px; /* room for glows beyond the column, inside its padding */
+  --ph-trim: 40px; /* stage trimmed at the bottom to fit the content below the portrait */
+  --ph-overlap: 5cqw; /* how far the metrics panel rides up over the portrait */
+
+  position: relative;
+  isolation: isolate;
+  container-type: inline-size;
+  /* Glows may spill sideways into the gutter; anything further is clipped so
+     the entrance never creates a horizontal scrollbar. Vertically nothing is clipped. */
+  margin-inline: calc(var(--ph-bleed) * -1);
+  padding-inline: var(--ph-bleed);
+  overflow-x: clip;
+}
+
+.ph-visual {
+  position: relative;
+  /* Poster crop at y≈1200 (where the portrait asset ends), minus the trim. */
+  height: calc(100cqw * 1200 / 1254 - var(--ph-trim));
+}
+
+/* Zero-specificity base so each layer's own rule can set its size. */
+:where(.ph-visual) img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* ---------- Neon light (no solid fill: sits on the page background) ---------- */
+
+.ph-light {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 34% 26% at 50% 24%, rgba(var(--ph-neon), 0.34), transparent 70%),
+    radial-gradient(ellipse 22% 18% at 76% 56%, rgba(var(--ph-neon), 0.22), transparent 72%),
+    radial-gradient(ellipse 20% 18% at 18% 62%, rgba(var(--ph-neon), 0.18), transparent 72%),
+    radial-gradient(ellipse 30% 22% at 50% 52%, rgba(var(--ph-neon), 0.12), transparent 75%);
+}
+
+.ph-light::before,
+.ph-light::after {
+  content: "";
+  position: absolute;
+  top: 22%;
+  width: 26%;
+  height: 34%;
+  background-image: radial-gradient(rgba(148, 163, 184, 0.3) 0.09cqw, transparent 0.14cqw);
+  background-size: 1.2cqw 1.2cqw;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 15%, transparent 70%);
+  mask-image: radial-gradient(ellipse at center, #000 15%, transparent 70%);
+}
+
+.ph-light::before {
+  left: 0;
+}
+
+.ph-light::after {
+  right: 0;
+  top: 16%;
+}
+
+/* ---------- Visual layers ---------- */
+
+/* Hover: neon glow + ~2px zoom on every asset except the portrait. */
+.ph-headline__img,
+.ph-orbit,
+.ph-phones,
+.ph-desktop {
+  pointer-events: auto;
+  transition:
+    filter 0.5s var(--ph-ease-soft),
+    scale 0.5s var(--ph-ease-soft);
+}
+
+.ph-headline__img:hover,
+.ph-orbit:hover,
+.ph-phones:hover,
+.ph-desktop:hover {
+  scale: 1.01;
+  filter: drop-shadow(0 0 0.8cqw rgba(var(--ph-neon), 0.9)) drop-shadow(0 0 2.6cqw rgba(var(--ph-neon), 0.55));
+}
+
+.ph-headline {
+  margin: 0;
+}
+
+/* The poster lettering is ~15% taller than the logo asset, hence the explicit height. */
+.ph-headline__img {
+  z-index: 1;
+  left: 9cqw;
+  top: 1cqw;
+  width: 77.6cqw;
+  height: 53cqw;
+  filter: drop-shadow(0 0 2.2cqw rgba(var(--ph-neon), 0.45));
+}
+
+.ph-orbit {
+  z-index: 2;
+  left: 2.4cqw;
+  top: 54.6cqw;
+  width: 35cqw;
+  rotate: -12deg;
+}
+
+.ph-phones {
+  z-index: 3;
+  left: -1.4cqw;
+  top: 46cqw;
+  width: 38.3cqw;
+}
+
+/* The poster's dashboard is taller in proportion than the asset. */
+.ph-desktop {
+  z-index: 4;
+  left: 58cqw;
+  top: 39.4cqw;
+  width: 44cqw;
+  height: 33cqw;
+}
+
+.ph-portrait {
+  z-index: 5;
+  left: 5.7cqw;
+  top: 12.3cqw;
+  width: 84.7cqw;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 0 1.4cqw rgba(var(--ph-neon), 0.35));
+  clip-path: inset(-10% -10% var(--ph-trim) -10%);
+}
+
+/* ---------- Annotations ---------- */
+
+.ph-note {
+  position: absolute;
+  z-index: 6;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: clamp(6px, 1.04cqw, 13px);
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  line-height: 1.85;
+  color: #e2e8f0;
+  text-shadow: 0 0 0.5cqw rgba(2, 6, 23, 0.85);
+}
+
+.ph-note__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ph-note__rule {
+  display: block;
+  height: max(1px, 0.16cqw);
+  background: #e2e8f0;
+  transform-origin: left center;
+}
+
+.ph-note--left-top {
+  left: 2cqw;
+  top: 6.1cqw;
+}
+
+.ph-note--left-top .ph-note__rule {
+  width: 3.6cqw;
+  margin-top: 2.3cqw;
+}
+
+.ph-note--right-top {
+  left: 86.9cqw;
+  top: 6.9cqw;
+}
+
+.ph-note--right-top .ph-note__rule {
+  width: 3.8cqw;
+  margin-top: 1.6cqw;
+}
+
+/* Bottom groups are anchored to the stage edge so they grow upward on small screens. */
+.ph-note--left-bottom {
+  left: 2cqw;
+  bottom: 1.8cqw;
+  margin-bottom: var(--ph-overlap);
+}
+
+.ph-note--left-bottom .ph-note__rule {
+  width: 3.2cqw;
+  margin-bottom: 1.8cqw;
+}
+
+.ph-note--right-bottom {
+  left: 88.4cqw;
+  bottom: 3.1cqw;
+  margin-bottom: var(--ph-overlap);
+}
+
+.ph-note--right-bottom .ph-note__rule {
+  width: 3.75cqw;
+  margin-bottom: 1.45cqw;
+}
+
+.ph-script {
+  position: absolute;
+  z-index: 6;
+  left: 84.6cqw;
+  top: 20.4cqw;
+  margin: 0;
+  font-family: "Allison", "Segoe Script", "Brush Script MT", cursive;
+  font-size: 5.4cqw;
+  line-height: 0.92;
+  color: #a5c4f7;
+  text-shadow: 0 0 1cqw rgba(var(--ph-neon), 0.6);
+  rotate: -16deg;
+  transform-origin: left top;
+  white-space: nowrap;
+}
+
+.ph-script__line {
+  display: block;
+}
+
+.ph-script__line--2 {
+  padding-left: 0.42em;
+}
+
+.ph-script__line--3 {
+  margin-left: -0.25em;
+  font-size: 0.74em;
+}
+
+/* ---------- Metrics panel (see metrics.css) ---------- */
+
+.ph-metrics {
+  z-index: 7;
+  transform-origin: 50% 100%;
+  margin-top: calc(var(--ph-overlap) * -1);
+}
+
+/* Narrow columns: the annotation text hits its minimum size, so tighten it. */
+@container (max-width: 560px) {
+  .ph-note {
+    letter-spacing: 0.16em;
+    line-height: 1.6;
+  }
+}
+
+/* ==========================================================================
+   Entrance timeline (~3s, runs once while data-anim="run")
+   0.0 light · 0.2 headline · 0.8 phones · 1.15 desktop · 1.65 portrait ·
+   2.2 annotations
+   ========================================================================== */
+
+@keyframes ph-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes ph-reveal {
+  from {
+    opacity: 0;
+    clip-path: inset(100% -15% -15% -15%);
+    translate: 0 6%;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    clip-path: inset(-15% -15% -15% -15%);
+    translate: 0 0;
+  }
+}
+
+@keyframes ph-from-left {
+  from {
+    opacity: 0;
+    translate: -30% 4%;
+  }
+}
+
+@keyframes ph-from-right {
+  from {
+    opacity: 0;
+    translate: 20% 4%;
+  }
+}
+
+@keyframes ph-portrait-in {
+  from {
+    opacity: 0;
+    scale: 0.97;
+    translate: 0 2%;
+  }
+}
+
+@keyframes ph-note-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
+@keyframes ph-rule-in {
+  from {
+    scale: 0 1;
+  }
+}
+
+.ph[data-anim="run"] .ph-light {
+  animation: ph-fade 0.55s var(--ph-ease-soft) both;
+}
+
+.ph[data-anim="run"] .ph-headline__img {
+  will-change: clip-path, translate, opacity;
+  animation: ph-reveal 0.8s var(--ph-ease) 0.2s both;
+}
+
+.ph[data-anim="run"] .ph-phones {
+  will-change: translate, opacity;
+  animation: ph-from-left 0.75s var(--ph-ease) 0.8s both;
+}
+
+.ph[data-anim="run"] .ph-orbit {
+  animation: ph-fade 0.6s var(--ph-ease-soft) 1.15s both;
+}
+
+.ph[data-anim="run"] .ph-desktop {
+  will-change: translate, opacity;
+  animation: ph-from-right 0.7s var(--ph-ease) 1.15s both;
+}
+
+.ph[data-anim="run"] .ph-portrait,
+.ph[data-anim="run"] .ph-metrics {
+  will-change: translate, opacity;
+  animation: ph-portrait-in 0.85s var(--ph-ease) 1.65s both;
+}
+
+.ph[data-anim="run"] .ph-note,
+.ph[data-anim="run"] .ph-script {
+  animation: ph-note-in 0.45s var(--ph-ease-soft) 2.2s both;
+}
+
+.ph[data-anim="run"] .ph-note__rule {
+  animation: ph-rule-in 0.45s var(--ph-ease) 2.3s both;
+}
+
+.ph[data-anim="run"] .ph-note--right-top,
+.ph[data-anim="run"] .ph-note--right-top .ph-note__rule {
+  animation-delay: 2.25s;
+}
+
+.ph[data-anim="run"] .ph-note--left-bottom,
+.ph[data-anim="run"] .ph-note--left-bottom .ph-note__rule {
+  animation-delay: 2.3s;
+}
+
+.ph[data-anim="run"] .ph-note--right-bottom,
+.ph[data-anim="run"] .ph-note--right-bottom .ph-note__rule {
+  animation-delay: 2.4s;
+}
+
+.ph[data-anim="run"] .ph-script {
+  animation-delay: 2.5s;
+}
+
+/* Reduced motion: no movement, just a short fade to the final composition. */
+@media (prefers-reduced-motion: reduce) {
+  .ph[data-anim="run"] :is(.ph-light, .ph-headline__img, .ph-phones, .ph-orbit, .ph-desktop,
+      .ph-portrait, .ph-metrics, .ph-note, .ph-note__rule, .ph-script) {
+    animation: ph-fade 0.4s ease-out 0s both;
+    will-change: auto;
+  }
+}
