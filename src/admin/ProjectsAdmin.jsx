@@ -537,8 +537,9 @@ export function ProjectsList() {
       {data.status === 'ready' && visible.length > 0 && view === 'cards' && (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Projects">
           {visible.map((p) => (
-            <Card as="li" key={p.id} className="flex flex-col overflow-hidden transition-colors hover:border-admin-border">
-              <div className="relative">
+            <Card as="li" key={p.id} className="flex flex-col transition-colors hover:border-admin-border">
+              {/* Clip only the image: clipping the whole card would hide the actions menu. */}
+              <div className="relative overflow-hidden rounded-t-lg">
                 <ProjectThumb project={p} className="aspect-video w-full" />
                 <span className="absolute left-3 top-3 rounded-full bg-admin-app/90 shadow-overlay">
                   <StatusBadge project={p} />
