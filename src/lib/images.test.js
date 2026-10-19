@@ -15,3 +15,9 @@ test('other hosts are left unchanged', () => {
   expect(cardImageUrl(other, 640)).toBe(other);
   expect(cardImageSrcSet(other)).toBeUndefined();
 });
+
+test('detail covers use larger widths', () => {
+  const srcSet = cardImageSrcSet('https://res.cloudinary.com/demo/image/upload/v1/a.png', [960, 1280, 1600]);
+  expect(srcSet).toContain('w_1600,h_900');
+  expect(srcSet).not.toContain('w_320');
+});

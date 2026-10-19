@@ -68,24 +68,32 @@ What the rules enforce:
   projects. It isn't used by the UI yet.
 - `admins` is readable only by its own user and can't be written by any client.
 
-### Rules checks (Rules Playground)
+### Rules checks
 
-These checks have **not** been run. Java isn't installed on the development machine,
-so the Firestore emulator couldn't run. Before relying on the rules, run the cases
-below in Firestore → Rules → **Rules Playground**.
+**Verified against the live project on 2026-10-19.** The checks were anonymous
+Firestore REST requests from a browser:
+
+| Check | Expected | Result |
+|---|---|---|
+| Query projects where `status == "published"` | 200 | ✅ 200 |
+| List all projects (no filter) | 403 | ✅ 403 |
+| Query draft projects | 403 | ✅ 403 |
+| Create a project | 403 | ✅ 403 |
+| Read `admins/<uid>` | 403 | ✅ 403 |
+| List all categories (no filter) | 403 | ✅ 403 |
+| Query active categories | 200 | ✅ 200 |
+| Read `auditEvents`, `analyticsEvents`, `media` | 403 | ✅ 403 |
+| Read an unlisted collection | 403 | ✅ 403 |
+| Analytics event for an unknown project | 403 | ✅ 403 |
+
+**Still to check in the Rules Playground**, because these need a signed-in user:
 
 | # | Simulated request | Expected |
 |---|---|---|
-| R1 | Unauthenticated `get` on `/projects/<published id>` | Allow |
-| R2 | Unauthenticated `get` on `/projects/<draft id>` | Deny |
-| R3 | Unauthenticated `create` on `/projects/x` | Deny |
-| R4 | Authenticated as a non-admin UID: `update` on `/projects/<id>` | Deny |
-| R5 | Authenticated as the admin UID: `get` on `/admins/<admin uid>` | Allow |
-| R6 | Authenticated as the admin UID: `update` on `/admins/<admin uid>` | Deny |
+| R4 | Signed in as a non-admin UID: `update` on `/projects/<id>` | Deny |
+| R5 | Signed in as the admin UID: `get` on `/admins/<admin uid>` | Allow |
+| R6 | Signed in as the admin UID: `update` on `/admins/<admin uid>` | Deny |
 | R7 | Admin `delete` on a project whose `deletedAt` is null | Deny |
-| R8 | Unauthenticated `get` on `/categories/<inactive id>` | Deny |
-| R9 | Unauthenticated `create` on `/auditEvents/x` | Deny |
-| R10 | Any request to an unlisted collection, e.g. `/secrets/x` | Deny |
 
 After deploying, also check the live behaviour:
 

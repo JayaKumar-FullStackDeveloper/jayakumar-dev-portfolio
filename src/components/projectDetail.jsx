@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { isFirebaseConfigured } from '../lib/firebaseConfig';
+import { cardImageSrcSet, cardImageUrl, DETAIL_WIDTHS } from '../lib/images';
 
 // Public detail page for one published project: /projects/:slug
 
@@ -104,7 +105,15 @@ export default function ProjectDetail() {
                 </video>
               ) : (
                 project.thumbnail && (
-                  <img src={project.thumbnail} alt={project.thumbnailAlt} width="1280" height="720" className="aspect-video w-full object-cover object-top" />
+                  <img
+                    src={cardImageUrl(project.thumbnail, 1280)}
+                    srcSet={cardImageSrcSet(project.thumbnail, DETAIL_WIDTHS)}
+                    sizes="(min-width: 768px) 672px, 100vw"
+                    alt={project.thumbnailAlt}
+                    width="1280"
+                    height="720"
+                    className="aspect-video w-full object-cover object-top"
+                  />
                 )
               )}
             </div>
