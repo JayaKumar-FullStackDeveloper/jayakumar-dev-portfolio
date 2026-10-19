@@ -6,7 +6,7 @@ function Experiance() {
             <ul className="space-y-4">
                 <li className="group relative grid transition-all sm:grid-cols-8 sm:gap-8 md:gap-4 p-4 rounded-lg overflow-hidden">
                     <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden transition motion-reduce:transition-none lg:-inset-x-6 lg:block lg:group-hover:bg-slate-600/15 lg:group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:group-hover:drop-shadow-lg"></div>
-                    <header className="z-10 mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 sm:col-span-2" aria-label="2024 - Present">Mar 2024 - Dec 2024</header>
+                    <header className="z-10 mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 sm:col-span-2" aria-label="March 2024 to December 2024">Mar 2024 - Dec 2024</header>
                     <div className="z-10 sm:col-span-6">
                         <h3 className="font-medium leading-snug text-slate-200">
                             <div>
@@ -36,7 +36,7 @@ function Experiance() {
                 </li>
                 <li className="group relative grid transition-all sm:grid-cols-8 sm:gap-8 md:gap-4 p-4 rounded-lg overflow-hidden">
                     <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden transition motion-reduce:transition-none lg:-inset-x-6 lg:block lg:group-hover:bg-slate-600/15 lg:group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:group-hover:drop-shadow-lg"></div>
-                    <header className="z-10 mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 sm:col-span-2" aria-label="2024 - Present">Jan 2024 - Present</header>
+                    <header className="z-10 mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 sm:col-span-2" aria-label="January 2025 to present">Jan 2025 - Present</header>
                     <div className="z-10 sm:col-span-6">
                         <h3 className="font-medium leading-snug text-slate-200">
                             <div>

@@ -1,0 +1,135 @@
+// Shared validation for the admin forms. Firestore Security Rules repeat the critical
+// checks server-side; this module exists for usable, field-level error messages.
+
+export const PROJECT_TYPES = ['Design', 'Development'];
+export const LINK_TYPES = ['Live Demo', 'Case Study', 'Figma', 'Behance', 'Repository', 'Other'];
+export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const LIMITS = {
+  title: 120,
+  slug: 80,
+  shortDescription: 300,
+  description: 5000,
+  techStack: 20,
+  tag: 40,
+  links: 10,
+  categories: 5,
+  url: 2000,
+  alt: 200,
+  categoryName: 60,
+  categoryDescription: 300,
+};
+
+export function slugify(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, LIMITS.slug)
+    .replace(/-+$/, '');
+}
+
+// Only https:// URLs are accepted. Rejects javascript:, data:, http: and malformed values.
+export function isSafeUrl(value) {
+  if (typeof value !== 'string' || !value || value.length > LIMITS.url) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+// "React, Tailwind CSS, react" -> ["React", "Tailwind CSS"]
+export function parseTags(text) {
+  const seen = new Set();
+  return String(text || '')
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter((tag) => {
+      const key = tag.toLowerCase();
+      if (!tag || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+/**
+ * Returns an object of field -> message; empty when valid.
+ * `publish: true` adds the publish-only requirements (cover image with alt text).
+ * `categories` is the loaded category list, used to check category/type compatibility.
+ */
+export function validateProject(project, { publish = false, categories = [] } = {}) {
+  const errors = {};
+  const title = (project.title || '').trim();
+  const shortDescription = (project.shortDescription || '').trim();
+  const categoryIds = project.categoryIds || [];
+  const techStack = project.techStack || [];
+  const links = project.links || [];
+  const cover = project.coverMedia || {};
+
+  if (!title) errors.title = 'Title is required.';
+  else if (title.length > LIMITS.title) errors.title = `Keep the title under ${LIMITS.title} characters.`;
+
+  if (!project.slug) errors.slug = 'Slug is required.';
+  else if (!SLUG_PATTERN.test(project.slug) || project.slug.length > LIMITS.slug) {
+    errors.slug = 'Use lowercase letters, numbers and single hyphens only.';
+  }
+
+  if (!PROJECT_TYPES.includes(project.type)) errors.type = 'Choose Design or Development.';
+
+  if (!shortDescription) errors.shortDescription = 'Short description is required.';
+  else if (shortDescription.length > LIMITS.shortDescription) {
+    errors.shortDescription = `Keep the short description under ${LIMITS.shortDescription} characters.`;
+  }
+
+  if ((project.description || '').length > LIMITS.description) {
+    errors.description = `Keep the full description under ${LIMITS.description} characters.`;
+  }
+
+  if (categoryIds.length === 0) errors.categoryIds = 'Choose at least one category.';
+  else if (categoryIds.length > LIMITS.categories) errors.categoryIds = `Choose at most ${LIMITS.categories} categories.`;
+  else {
+    const allValid = categoryIds.every((id) => {
+      const category = categories.find((c) => c.id === id);
+      return category && category.active && (category.projectTypes || []).includes(project.type);
+    });
+    if (!allValid) errors.categoryIds = 'A selected category is inactive or not available for this project type.';
+  }
+
+  if (techStack.length > LIMITS.techStack) errors.techStack = `Use at most ${LIMITS.techStack} tags.`;
+  else if (techStack.some((tag) => tag.length > LIMITS.tag)) errors.techStack = `Keep each tag under ${LIMITS.tag} characters.`;
+
+  if (cover.url && !isSafeUrl(cover.url)) errors.coverUrl = 'Use a valid https:// image URL.';
+  else if (publish && !cover.url) errors.coverUrl = 'A cover image is required to publish.';
+  if ((cover.alt || '').length > LIMITS.alt) errors.coverAlt = `Keep alt text under ${LIMITS.alt} characters.`;
+  else if (publish && cover.url && !(cover.alt || '').trim()) errors.coverAlt = 'Describe the cover image to publish.';
+
+  if (project.projectUrl && !isSafeUrl(project.projectUrl)) errors.projectUrl = 'Use a valid https:// URL.';
+
+  if (links.length > LIMITS.links) errors.links = `Add at most ${LIMITS.links} links.`;
+  links.forEach((link, i) => {
+    if (!(link.label || '').trim()) errors[`link-${i}`] = 'Add a label for this link.';
+    else if (!isSafeUrl(link.url)) errors[`link-${i}`] = 'Use a valid https:// URL.';
+  });
+
+  if (!Number.isFinite(Number(project.sortOrder))) errors.sortOrder = 'Sort order must be a number.';
+
+  return errors;
+}
+
+export function validateCategory(category) {
+  const errors = {};
+  const name = (category.name || '').trim();
+  if (!name) errors.name = 'Name is required.';
+  else if (name.length > LIMITS.categoryName) errors.name = `Keep the name under ${LIMITS.categoryName} characters.`;
+  if (!category.slug || !SLUG_PATTERN.test(category.slug)) errors.slug = 'Use lowercase letters, numbers and single hyphens only.';
+  if (!(category.projectTypes || []).length) errors.projectTypes = 'Choose at least one project type.';
+  if ((category.description || '').length > LIMITS.categoryDescription) {
+    errors.description = `Keep the description under ${LIMITS.categoryDescription} characters.`;
+  }
+  if (!Number.isFinite(Number(category.sortOrder))) errors.sortOrder = 'Sort order must be a number.';
+  return errors;
+}

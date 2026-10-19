@@ -1,6 +1,6 @@
 import React from "react";
-import { FaReact, FaHtml5, FaCss3Alt, FaNodeJs, FaDocker, FaAws, FaJs, FaGitAlt } from "react-icons/fa";
-import { SiTailwindcss, SiMongodb, SiExpress, SiFlutter, SiKubernetes, SiMysql } from "react-icons/si";
+import { FaReact, FaHtml5, FaCss3Alt, FaNodeJs, FaAws, FaJs, FaGitAlt } from "react-icons/fa";
+import { SiTailwindcss, SiMongodb, SiExpress, SiMysql } from "react-icons/si";
 import { IoLogoFigma } from "react-icons/io5";
 
 const IconCard = ({ Icon }) => {
@@ -24,8 +24,8 @@ const IconCard = ({ Icon }) => {
 
 export const IconMarquee = () => {
   const icons = [
-    FaReact, SiTailwindcss, FaHtml5, FaCss3Alt, FaJs, FaNodeJs, SiExpress, SiMongodb, SiMysql,
-    FaDocker, SiKubernetes, SiFlutter, FaAws, IoLogoFigma, FaGitAlt
+    IoLogoFigma, FaReact, SiTailwindcss, FaHtml5, FaCss3Alt, FaJs, FaNodeJs, SiExpress, SiMongodb, SiMysql,
+    FaAws, FaGitAlt
   ];
 
   return (
