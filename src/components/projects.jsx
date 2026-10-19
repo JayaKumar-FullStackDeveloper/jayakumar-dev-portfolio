@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaPalette, FaCode } from 'react-icons/fa';
 import { isFirebaseConfigured } from '../lib/firebaseConfig';
 import { parseTags } from '../lib/validation';
+import { cardImageSrcSet, cardImageUrl } from '../lib/images';
 import { DEFAULT_CATEGORIES, LEGACY_PROJECTS } from '../data/legacyProjects';
 
 const MODES = [
@@ -83,6 +84,46 @@ function ProjectTitleLink({ project }) {
   );
 }
 
+// Shown when a project has no cover image, or when the image fails to load.
+export function ThumbnailPlaceholder({ type }) {
+  const Icon = type === 'Design' ? FaPalette : FaCode;
+  return (
+    <div
+      className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700/70"
+      style={{
+        backgroundImage:
+          'radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px), linear-gradient(to bottom right, #1e293b, #0f172a)',
+        backgroundSize: '14px 14px, 100% 100%',
+      }}
+      aria-hidden="true"
+    >
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-400/10 text-teal-300 ring-1 ring-teal-400/30">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Preview coming soon</span>
+    </div>
+  );
+}
+
+// 16:9 thumbnail. Cloudinary images are served at the size the card needs (320/640/960 px).
+function ProjectThumbnail({ project }) {
+  const [failed, setFailed] = useState(false);
+  if (!project.thumbnail || failed) return <ThumbnailPlaceholder type={project.type} />;
+  return (
+    <img
+      src={cardImageUrl(project.thumbnail, 640)}
+      srcSet={cardImageSrcSet(project.thumbnail)}
+      sizes="(min-width: 640px) 360px, 100vw"
+      alt={project.thumbnailAlt}
+      width="640"
+      height="360"
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="aspect-video w-full object-cover object-top"
+    />
+  );
+}
+
 export function ProjectCard({ project }) {
   const shownTags = project.tags.slice(0, MAX_TAGS);
   const hiddenTags = project.tags.slice(MAX_TAGS);
@@ -92,18 +133,7 @@ export function ProjectCard({ project }) {
       <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden transition motion-reduce:transition-none lg:-inset-x-6 lg:block lg:group-hover:bg-slate-600/15 lg:group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:group-hover:drop-shadow-lg"></div>
 
       <div className="z-10 overflow-hidden rounded-md sm:col-span-3">
-        {project.thumbnail ? (
-          <img
-            src={project.thumbnail}
-            alt={project.thumbnailAlt}
-            width="640"
-            height="360"
-            loading="lazy"
-            className="aspect-video w-full object-cover object-top"
-          />
-        ) : (
-          <div className="aspect-video w-full bg-slate-800" aria-hidden="true" />
-        )}
+        <ProjectThumbnail project={project} />
       </div>
 
       <div className="z-10 min-w-0 sm:col-span-5">

@@ -582,7 +582,7 @@ export function ProjectEditor() {
               onChange={(e) => update('techStackText', e.target.value)} {...errorProps('techStack')} />
           </Field>
 
-          <Field id="coverUrl" label="Cover image URL" hint="Upload an image, choose one from the library, or paste an https:// URL. Required to publish." error={errors.coverUrl}>
+          <Field id="coverUrl" label="Cover image URL" hint="Use a 16:9 image, ideally 1600 × 900 px (at least 1280 × 720). Upload, choose from the library, or paste an https:// URL. Required to publish." error={errors.coverUrl}>
             <input id="coverUrl" type="url" className={inputClass} value={form.coverUrl}
               onChange={(e) => update('coverUrl', e.target.value)} {...errorProps('coverUrl')} />
           </Field>

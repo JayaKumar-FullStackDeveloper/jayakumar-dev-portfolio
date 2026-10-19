@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import ProjectsPage from './projects';
+import ProjectsPage, { ProjectCard } from './projects';
 
 // No REACT_APP_FIREBASE_* variables in tests, so the section uses its built-in data.
 
@@ -30,4 +30,26 @@ test('development lists the built-in projects and filters by category', () => {
   // Switching mode resets the category filter.
   fireEvent.click(screen.getByRole('button', { name: 'Design' }));
   expect(screen.getByRole('button', { name: /^All/ })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('cards without an image, or with a broken one, show the placeholder', () => {
+  const base = { id: 'p', type: 'Design', title: 'No image', description: 'd', tags: [], href: null, categoryIds: [] };
+  const { container, rerender } = render(
+    <MemoryRouter>
+      <ul>
+        <ProjectCard project={{ ...base, thumbnail: null }} />
+      </ul>
+    </MemoryRouter>
+  );
+  expect(screen.getByText('Preview coming soon')).toBeInTheDocument();
+
+  rerender(
+    <MemoryRouter>
+      <ul>
+        <ProjectCard project={{ ...base, id: 'q', thumbnail: 'https://images.example.com/missing.png', thumbnailAlt: 'Cover' }} />
+      </ul>
+    </MemoryRouter>
+  );
+  fireEvent.error(container.querySelector('img'));
+  expect(screen.getByText('Preview coming soon')).toBeInTheDocument();
 });
