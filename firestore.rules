@@ -153,9 +153,32 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ---------- media metadata (no file bytes) ----------
+    // ---------- media metadata (no file bytes; files live in Cloudinary) ----------
+    function validMedia(d) {
+      return d.keys().hasOnly([
+          "provider", "publicId", "url", "resourceType", "format", "contentType", "sizeBytes",
+          "width", "height", "duration", "filename", "altText", "createdAt", "createdBy"
+        ])
+        && d.provider == "cloudinary"
+        && d.publicId is string && d.publicId.size() <= 255
+        && isHttpsUrl(d.url) && d.url.matches('https://res[.]cloudinary[.]com/.*')
+        && d.resourceType in ["image", "video"]
+        && d.sizeBytes is number
+        && d.filename is string && d.filename.size() <= 200
+        && d.altText is string && d.altText.size() <= 200;
+    }
+
     match /media/{mediaId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && validMedia(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+      // Only the alt text can change after upload.
+      allow update: if isAdmin()
+        && validMedia(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["altText"]);
+      allow delete: if isAdmin();
     }
 
     // ---------- everything else ----------

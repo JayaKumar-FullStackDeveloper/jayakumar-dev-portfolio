@@ -1,6 +1,6 @@
 import { collection, getDocs, limit, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { isSafeUrl, SLUG_PATTERN, videoEmbedUrl } from '../lib/validation';
+import { isSafeUrl, SLUG_PATTERN, videoEmbedUrl, videoFileUrl } from '../lib/validation';
 import { fetchActiveCategories } from './categoryService';
 
 // Maps a published project document to the fields the public card needs.
@@ -34,6 +34,7 @@ function toPublicDetail(snap) {
       .filter((link) => isSafeUrl(link.url) && link.label)
       .map((link) => ({ label: link.label, type: link.type, url: link.url })),
     videoEmbedUrl: videoEmbedUrl(video),
+    videoFileUrl: videoFileUrl(video),
   };
 }
 

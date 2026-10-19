@@ -10,6 +10,7 @@ import {
   slugify,
   validateProject,
   videoEmbedUrl,
+  videoFileUrl,
   videoWatchUrl,
 } from '../lib/validation';
 import { listCategories } from '../services/categoryService';
@@ -30,6 +31,7 @@ import {
 } from '../services/projectService';
 import { ProjectCard } from '../components/projects';
 import { Banner, buttonClass, Field, formatDate, inputClass, smallButtonClass, StatusBadge, useSession } from './ui';
+import { MediaPicker, UploadButton } from './MediaAdmin';
 
 const errorMessage = (err) =>
   err instanceof ValidationError ? Object.values(err.fieldErrors).join(' ') : err.message || 'Something went wrong.';
@@ -580,19 +582,32 @@ export function ProjectEditor() {
               onChange={(e) => update('techStackText', e.target.value)} {...errorProps('techStack')} />
           </Field>
 
-          <Field id="coverUrl" label="Cover image URL" hint="https:// image URL. Required to publish." error={errors.coverUrl}>
+          <Field id="coverUrl" label="Cover image URL" hint="Upload an image, choose one from the library, or paste an https:// URL. Required to publish." error={errors.coverUrl}>
             <input id="coverUrl" type="url" className={inputClass} value={form.coverUrl}
               onChange={(e) => update('coverUrl', e.target.value)} {...errorProps('coverUrl')} />
           </Field>
+          <div className="flex flex-wrap items-start gap-4">
+            <UploadButton type="image" label="Upload image"
+              onUploaded={(item) => setForm((f) => ({ ...f, coverUrl: item.url, coverAlt: f.coverAlt || item.altText }))} />
+            <MediaPicker type="image"
+              onPick={(item) => setForm((f) => ({ ...f, coverUrl: item.url, coverAlt: f.coverAlt || item.altText }))} />
+          </div>
           <Field id="coverAlt" label="Cover image alt text" hint="Describe the image for screen readers. Required to publish." error={errors.coverAlt}>
             <input id="coverAlt" className={inputClass} value={form.coverAlt}
               onChange={(e) => update('coverAlt', e.target.value)} {...errorProps('coverAlt')} />
           </Field>
 
-          <Field id="videoUrl" label="Video link" hint="Optional. YouTube or Vimeo only; shown on the project's detail page." error={errors.videoUrl}>
+          <Field id="videoUrl" label="Video link" hint="Optional. Paste a YouTube or Vimeo link, or upload a video. Shown on the project's detail page." error={errors.videoUrl}>
             <input id="videoUrl" type="url" className={inputClass} value={form.videoUrl}
               onChange={(e) => update('videoUrl', e.target.value)} {...errorProps('videoUrl')} />
           </Field>
+          <div className="flex flex-wrap items-start gap-4">
+            <UploadButton type="video" label="Upload video" onUploaded={(item) => update('videoUrl', item.url)} />
+            <MediaPicker type="video" onPick={(item) => update('videoUrl', item.url)} />
+          </div>
+          {videoFileUrl(parseVideoUrl(form.videoUrl)) && (
+            <video src={videoFileUrl(parseVideoUrl(form.videoUrl))} controls preload="metadata" className="aspect-video w-full rounded-md border border-slate-700 bg-black" />
+          )}
           {videoEmbedUrl(parseVideoUrl(form.videoUrl)) && (
             <div className="aspect-video overflow-hidden rounded-md border border-slate-700">
               <iframe

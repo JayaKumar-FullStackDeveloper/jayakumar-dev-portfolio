@@ -91,6 +91,17 @@ export default function ProjectDetail() {
                   allow="encrypted-media; picture-in-picture; fullscreen"
                   referrerPolicy="strict-origin-when-cross-origin"
                 />
+              ) : project.videoFileUrl ? (
+                <video
+                  src={project.videoFileUrl}
+                  poster={project.thumbnail || undefined}
+                  controls
+                  preload="metadata"
+                  playsInline
+                  className="aspect-video w-full bg-black"
+                >
+                  <track kind="captions" />
+                </video>
               ) : (
                 project.thumbnail && (
                   <img src={project.thumbnail} alt={project.thumbnailAlt} width="1280" height="720" className="aspect-video w-full object-cover object-top" />

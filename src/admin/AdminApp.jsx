@@ -7,6 +7,7 @@ import { Banner, buttonClass, Field, inputClass, SessionContext, useSession } fr
 import { ProjectEditor, ProjectsList } from './ProjectsAdmin';
 import CategoriesAdmin from './CategoriesAdmin';
 import AnalyticsAdmin from './AnalyticsAdmin';
+import MediaAdmin from './MediaAdmin';
 
 // Private admin area, mounted at /admin/*. Not linked from the public site.
 // Route guards here are for UX only; Firestore Security Rules are the security boundary.
@@ -238,6 +239,9 @@ function AdminLayout() {
             <NavLink to="/admin/categories" className={navClass}>
               Categories
             </NavLink>
+            <NavLink to="/admin/media" className={navClass}>
+              Media
+            </NavLink>
             <NavLink to="/admin/analytics" className={navClass}>
               Analytics
             </NavLink>
@@ -284,6 +288,7 @@ export default function AdminApp() {
               <Route path="projects/new" element={<ProjectEditor />} />
               <Route path="projects/:id" element={<ProjectEditor />} />
               <Route path="categories" element={<CategoriesAdmin />} />
+              <Route path="media" element={<MediaAdmin />} />
               <Route path="analytics" element={<AnalyticsAdmin />} />
             </Route>
           </Route>

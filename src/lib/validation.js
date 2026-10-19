@@ -42,12 +42,14 @@ export function isSafeUrl(value) {
   }
 }
 
-/* ---------- External video (YouTube / Vimeo only) ----------
-   Only the provider and a validated video ID are stored. Embed URLs are always rebuilt
-   from those two values, so an arbitrary URL can never end up in an iframe. */
+/* ---------- Video: YouTube / Vimeo links, or files uploaded to Cloudinary ----------
+   For YouTube/Vimeo only the provider and a validated video ID are stored, and embed URLs
+   are rebuilt from those, so an arbitrary URL can never end up in an iframe. Uploaded
+   videos are played with <video>, and only from res.cloudinary.com video URLs. */
 
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 const VIMEO_ID = /^\d{6,12}$/;
+const CLOUDINARY_VIDEO = /^https:\/\/res\.cloudinary\.com\/[a-z0-9_-]+\/video\/upload\/[^\s?#"<>]+$/i;
 
 export function parseVideoUrl(value) {
   if (!isSafeUrl(value)) return null;
@@ -55,6 +57,11 @@ export function parseVideoUrl(value) {
   const host = url.hostname.replace(/^(www|m)\./, '');
   let provider = null;
   let id = null;
+
+  if (host === 'res.cloudinary.com') {
+    const fileUrl = `${url.origin}${url.pathname}`;
+    return CLOUDINARY_VIDEO.test(fileUrl) ? { provider: 'cloudinary', url: fileUrl } : null;
+  }
 
   if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
     provider = 'youtube';
@@ -85,8 +92,14 @@ export function videoEmbedUrl(video) {
   return null;
 }
 
-// Canonical watch URL, used to show a stored video back in the admin form.
+// Direct file URL for uploaded videos (played with <video>, never in an iframe).
+export function videoFileUrl(video) {
+  return video?.provider === 'cloudinary' && CLOUDINARY_VIDEO.test(video.url || '') ? video.url : null;
+}
+
+// Canonical URL, used to show a stored video back in the admin form.
 export function videoWatchUrl(video) {
+  if (videoFileUrl(video)) return video.url;
   if (!videoEmbedUrl(video)) return '';
   return video.provider === 'youtube'
     ? `https://www.youtube.com/watch?v=${video.videoId}`
@@ -161,7 +174,7 @@ export function validateProject(project, { publish = false, categories = [] } = 
   if (project.projectUrl && !isSafeUrl(project.projectUrl)) errors.projectUrl = 'Use a valid https:// URL.';
 
   if (project.videoUrl && !parseVideoUrl(project.videoUrl)) {
-    errors.videoUrl = 'Use a YouTube or Vimeo video link.';
+    errors.videoUrl = 'Use a YouTube or Vimeo link, or upload a video.';
   }
 
   if (links.length > LIMITS.links) errors.links = `Add at most ${LIMITS.links} links.`;

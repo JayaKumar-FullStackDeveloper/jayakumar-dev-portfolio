@@ -145,10 +145,71 @@ After deploying, also check the live behaviour:
   plan allows 50,000 reads a day, which is plenty for a portfolio. Move to daily
   totals if traffic grows.
 
+## 6. Uploads (Cloudinary, signed)
+
+Files go to Cloudinary. Firestore keeps metadata only, in the `media` collection.
+Uploads are signed by the Netlify Function `netlify/functions/cloudinary.js`, which
+has no extra dependencies. For every request the function:
+
+1. checks the caller's Firebase ID token (signature, project, expiry);
+2. reads `admins/<uid>` through the Firestore REST API using the caller's own
+   token, so the security rules decide who is an admin;
+3. only then signs an upload, checks an uploaded file, or deletes one.
+
+Files are re-checked after upload, and a file that's too large or the wrong type
+is deleted at once.
+
+| Type | Allowed |
+|---|---|
+| Images | JPG, PNG, WebP, AVIF or GIF, up to 10 MB (no SVG) |
+| Videos | MP4, WebM or MOV, up to 100 MB |
+
+All files go into the `portfolio/` folder, and the function refuses to touch
+anything outside it.
+
+### Netlify environment variables (server-side only)
+
+| Variable | Value |
+|---|---|
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary dashboard → Product environment → Cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary → Settings → API Keys |
+| `CLOUDINARY_API_SECRET` | Same screen. **Never** add a `REACT_APP_` prefix to this. |
+| `CLOUDINARY_FOLDER` | Optional; defaults to `portfolio` |
+
+The function reads the project ID from `REACT_APP_FIREBASE_PROJECT_ID`, which is
+already set. Make sure all of these apply to Functions and to Deploy Previews.
+
+Also re-publish `firestore.rules`: the `media` rules changed in this version.
+
+### Using it
+
+- **Project editor:** use **Upload image** / **Upload video** (with a progress
+  bar), or **Choose from library**.
+- **Admin → Media:** drag-and-drop uploads, a list of which projects use each
+  file, alt text, copy URL, and delete.
+- **Deleting:** blocked while any project still uses the file.
+- **Replacing:** to replace a file, pick a new one in the project, then delete the
+  old one from Media; it shows "Not used by any project" once it's free.
+
+### Local development
+
+`npm start` doesn't run Netlify Functions, so uploads only work on Netlify (deploy
+previews included). To use them locally, run the site with the Netlify CLI
+(`npx netlify-cli dev`) and put the Cloudinary variables in your Netlify site
+settings or in `.env.local`.
+
+### Tests
+
+`npm run test:functions` checks the function. It covers:
+
+- forged, expired and wrong-project tokens are rejected
+- non-admins are refused
+- the secret never appears in a response
+- oversized uploads are deleted
+- files outside `portfolio/` are refused
+
 ### Still pending
 
-- **Uploads:** waiting on the Cloudinary setup (signed or unsigned upload). Until
-  then, the cover image is an https URL.
 - **Admin pagination:** the admin list loads up to 500 projects.
 
 ## 6. Known limitations

@@ -6,6 +6,7 @@ import {
   validateCategory,
   validateProject,
   videoEmbedUrl,
+  videoFileUrl,
   videoWatchUrl,
 } from './validation';
 
@@ -107,4 +108,13 @@ test('embed URLs are rebuilt from validated IDs only', () => {
   expect(videoEmbedUrl({ provider: 'other', videoId: '123456' })).toBeNull();
   expect(videoWatchUrl({ provider: 'vimeo', videoId: '76979871' })).toBe('https://vimeo.com/76979871');
   expect(validateProject({ ...validDraft, videoUrl: 'https://example.com/video.mp4' }, { categories })).toHaveProperty('videoUrl');
+});
+
+test('uploaded Cloudinary videos are accepted only as res.cloudinary.com video URLs', () => {
+  const url = 'https://res.cloudinary.com/demo/video/upload/v1/portfolio/intro.mp4';
+  expect(parseVideoUrl(`${url}?x=1`)).toEqual({ provider: 'cloudinary', url });
+  expect(videoFileUrl({ provider: 'cloudinary', url })).toBe(url);
+  expect(videoEmbedUrl({ provider: 'cloudinary', url })).toBeNull(); // never iframed
+  expect(parseVideoUrl('https://res.cloudinary.com/demo/image/upload/v1/a.png')).toBeNull();
+  expect(videoFileUrl({ provider: 'cloudinary', url: 'https://evil.example/video/upload/a.mp4' })).toBeNull();
 });
