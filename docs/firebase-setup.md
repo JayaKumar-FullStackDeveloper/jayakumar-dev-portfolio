@@ -125,21 +125,46 @@ After deploying, also check the live behaviour:
 
 - **Audit trail:** every change writes an `auditEvents` record.
 
-## 5. Detail pages, video and analytics
+## 5. Cards, posts, video and analytics
 
-- **Detail pages:** every published project has a page at `/projects/<slug>`. Cards
-  open it; the page shows the cover or video, the full description, tags and links.
-  Unpublished or unknown slugs show "Project not found".
-- **Video:** paste a YouTube or Vimeo link in the editor's **Video link** field. Only
-  the provider and a validated video ID are stored. The player URL is rebuilt from
-  them (YouTube uses `youtube-nocookie.com`, Vimeo uses `dnt=1`), so no other site
-  can be embedded.
+Each project has a **"When the card is clicked"** setting in the editor:
+
+| Setting | What visitors get |
+|---|---|
+| **Open link** (default) | The card opens the project's **primary link** in a new tab (live site, Figma, Behance…). With no link set, the card isn't clickable. |
+| **Show post popup** | For posters, banners and similar work. The card shows the whole image (not cropped) with an image-count badge, and clicking opens an Instagram-style popup on the same page. |
+
+Ticking the **Others** category switches a project to the popup automatically.
+
+**The popup:**
+
+- **Carousel:** arrows, dots, a "2 / 5" counter, arrow keys and swiping on phones.
+- **Video:** shown as the first slide, if the project has one.
+- **Details:** title, description, tags and links beside the image (below it on phones).
+- **Closing:** the ✕ button, Esc, a click outside, or the browser's Back button.
+- **Sharing:** every post gets a link like `https://<site>/#post=<slug>` that opens the popup directly.
+
+**Post images:**
+
+- Add them in the editor's **Post images** section: multi-upload, choose from the library, reorder, and add alt text to each.
+- Portrait 4:5 (1080 × 1350 px) fits the popup best.
+- A post with no cover image uses its first image on the card.
+- At most 20 images per post.
+
+**Slugs:** new projects get a short slug from the part of the title before " - ",
+":" or "|" (for example "Deskmate - Tracking…" becomes `deskmate`). Existing slugs
+don't change; edit the Slug field to shorten one.
+
+**Video:** paste a YouTube or Vimeo link in the editor's **Video link** field, or
+upload one. Only the provider and a validated video ID are stored, and the player
+URL is rebuilt from them, so no other site can be embedded.
+
 - **Analytics** (`analyticsEvents` collection, Admin → Analytics):
 
   | Metric | When it's counted |
   |---|---|
-  | View | A detail page opens. At most once per project per browser session every 30 minutes. |
-  | Outbound click | A visitor clicks a project link on the detail page. |
+  | View | A post popup opens. At most once per post per browser session every 30 minutes. |
+  | Outbound click | A visitor opens a project's link, from a card or from a popup. |
 
 - **Not counted:**
   - Browsers that have signed in to `/admin` (a flag in localStorage marks them)

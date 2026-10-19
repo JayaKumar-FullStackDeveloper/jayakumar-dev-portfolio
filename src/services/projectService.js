@@ -32,7 +32,9 @@ export class ValidationError extends Error {
 export class ConflictError extends Error {}
 
 function editableFields(input) {
-  const cover = input.coverMedia || {};
+  const gallery = (input.gallery || []).map((img) => ({ url: img.url.trim(), alt: (img.alt || '').trim() }));
+  // A post without its own cover uses its first image.
+  const cover = input.coverMedia?.url ? input.coverMedia : gallery[0] || {};
   const video = input.videoUrl ? parseVideoUrl(input.videoUrl) : null;
   return {
     title: input.title.trim(),
@@ -49,6 +51,8 @@ function editableFields(input) {
     projectUrl: (input.projectUrl || '').trim(),
     featured: Boolean(input.featured),
     sortOrder: Number(input.sortOrder) || 0,
+    display: input.display === 'gallery' ? 'gallery' : 'link',
+    gallery,
   };
 }
 

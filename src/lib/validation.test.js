@@ -2,6 +2,7 @@ import {
   isSafeUrl,
   parseTags,
   parseVideoUrl,
+  slugFromTitle,
   slugify,
   validateCategory,
   validateProject,
@@ -117,4 +118,21 @@ test('uploaded Cloudinary videos are accepted only as res.cloudinary.com video U
   expect(videoEmbedUrl({ provider: 'cloudinary', url })).toBeNull(); // never iframed
   expect(parseVideoUrl('https://res.cloudinary.com/demo/image/upload/v1/a.png')).toBeNull();
   expect(videoFileUrl({ provider: 'cloudinary', url: 'https://evil.example/video/upload/a.mp4' })).toBeNull();
+});
+
+test('slugFromTitle makes short slugs from long titles', () => {
+  expect(slugFromTitle('Deskmate - Tracking & Managing an office seats and availability.')).toBe('deskmate');
+  expect(slugFromTitle('Laya: Skin and Hair Care E-Commerce')).toBe('laya');
+  expect(slugFromTitle('Summer Sale Poster | Instagram')).toBe('summer-sale-poster');
+  expect(slugFromTitle('One two three four five six seven eight')).toBe('one-two-three-four-five-six');
+  expect(slugFromTitle('E-Commerce Banner')).toBe('e-commerce-banner'); // hyphen without spaces is kept
+});
+
+test('posts need at least one safe image to publish', () => {
+  const post = { ...validDraft, display: 'gallery', gallery: [] };
+  expect(validateProject(post, { publish: true, categories })).toHaveProperty('gallery');
+  expect(validateProject({ ...post, gallery: [{ url: 'javascript:alert(1)' }] }, { categories })).toHaveProperty('gallery');
+  const ok = { ...post, gallery: [{ url: 'https://res.cloudinary.com/demo/image/upload/a.png', alt: 'Poster' }] };
+  expect(validateProject(ok, { publish: true, categories })).toEqual({}); // first image stands in for the cover
+  expect(validateProject({ ...validDraft, display: 'popup' }, { categories })).toHaveProperty('display');
 });

@@ -56,7 +56,8 @@ service cloud.firestore {
       return d.keys().hasOnly([
           "title", "slug", "type", "shortDescription", "description", "categoryIds", "techStack",
           "coverMedia", "media", "links", "projectUrl", "featured", "sortOrder", "status",
-          "createdAt", "updatedAt", "publishedAt", "createdBy", "updatedBy", "deletedAt"
+          "createdAt", "updatedAt", "publishedAt", "createdBy", "updatedBy", "deletedAt",
+          "display", "gallery"
         ])
         && d.keys().hasAll([
           "title", "slug", "type", "shortDescription", "categoryIds", "techStack", "coverMedia",
@@ -73,6 +74,8 @@ service cloud.firestore {
         && (!("media" in d) || (d.media is list && d.media.size() <= 20))
         && (!("links" in d) || (d.links is list && d.links.size() <= 10))
         && (!("projectUrl" in d) || d.projectUrl == "" || isHttpsUrl(d.projectUrl))
+        && (!("display" in d) || d.display in ["link", "gallery"])
+        && (!("gallery" in d) || (d.gallery is list && d.gallery.size() <= 20))
         && d.featured is bool
         && d.sortOrder is number
         && d.status in ["draft", "published", "archived"]

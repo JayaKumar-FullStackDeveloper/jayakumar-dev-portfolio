@@ -1,4 +1,4 @@
-import { cardImageSrcSet, cardImageUrl } from './images';
+import { cardImageSrcSet, cardImageUrl, fitImageSrcSet, fitImageUrl } from './images';
 
 const cloud = 'https://res.cloudinary.com/demo/image/upload/v1/portfolio/cover.png';
 
@@ -16,8 +16,10 @@ test('other hosts are left unchanged', () => {
   expect(cardImageSrcSet(other)).toBeUndefined();
 });
 
-test('detail covers use larger widths', () => {
-  const srcSet = cardImageSrcSet('https://res.cloudinary.com/demo/image/upload/v1/a.png', [960, 1280, 1600]);
-  expect(srcSet).toContain('w_1600,h_900');
-  expect(srcSet).not.toContain('w_320');
+test('posters are scaled to fit without cropping', () => {
+  expect(fitImageUrl('https://res.cloudinary.com/demo/image/upload/v1/a.png', 640, 360)).toBe(
+    'https://res.cloudinary.com/demo/image/upload/c_limit,w_640,h_360,f_auto,q_auto/v1/a.png'
+  );
+  expect(fitImageSrcSet('https://res.cloudinary.com/demo/image/upload/v1/a.png')).toContain(' 1080w');
+  expect(fitImageUrl('https://images.example.com/a.png', 640)).toBe('https://images.example.com/a.png');
 });

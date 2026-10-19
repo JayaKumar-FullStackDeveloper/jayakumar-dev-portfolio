@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaPalette, FaCode } from 'react-icons/fa';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FaPalette, FaCode, FaClone } from 'react-icons/fa';
 import { isFirebaseConfigured } from '../lib/firebaseConfig';
 import { parseTags } from '../lib/validation';
-import { cardImageSrcSet, cardImageUrl } from '../lib/images';
+import { cardImageSrcSet, cardImageUrl, fitImageUrl } from '../lib/images';
 import { DEFAULT_CATEGORIES, LEGACY_PROJECTS } from '../data/legacyProjects';
+import PostViewer, { buildSlides } from './postViewer';
 
 const MODES = [
   { id: 'design', type: 'Design', label: 'Design', Icon: FaPalette, subtitle: 'Selected UI/UX design work.' },
@@ -12,6 +12,7 @@ const MODES = [
 ];
 
 const MAX_TAGS = 3;
+const POST_HASH_PREFIX = 'post=';
 
 // Built-in data, used only when Firebase isn't configured (e.g. local development without .env.local).
 const STATIC_PORTFOLIO = {
@@ -23,7 +24,10 @@ const STATIC_PORTFOLIO = {
     thumbnail: p.thumbnail,
     thumbnailAlt: '',
     tags: parseTags(p.platform),
-    href: null, // detail pages need Firebase
+    display: 'link',
+    href: null,
+    links: [],
+    gallery: [],
     categoryIds: [p.category],
     featured: false,
     sortOrder: index,
@@ -59,24 +63,40 @@ function usePortfolioData() {
   return state;
 }
 
-function ProjectTitleLink({ project }) {
+// First-party analytics, loaded on demand and never allowed to break the page.
+function track(method, ...args) {
+  if (!isFirebaseConfigured) return;
+  import('../services/analyticsService')
+    .then((analytics) => analytics[method](...args))
+    .catch(() => {});
+}
+
+// The card's clickable title. The invisible overlay span makes the whole card clickable on desktop.
+// Link projects open their primary link in a new tab; posts open the popup viewer.
+function ProjectTitleAction({ project, onOpen }) {
   const className =
-    'inline-flex items-baseline font-medium leading-tight text-slate-200 hover:text-teal-300 focus-visible:text-teal-300 group/link text-base';
+    'inline-flex items-baseline text-left font-medium leading-tight text-slate-200 hover:text-teal-300 focus-visible:text-teal-300 focus-visible:outline-none group/link text-base';
   const overlay = (
     <span className="absolute -inset-x-4 -inset-y-2.5 hidden rounded md:-inset-x-6 md:-inset-y-4 sm:-inset-y-6 lg:block"></span>
   );
 
-  if (!project.href) return <span>{project.title}</span>;
-  if (project.href.startsWith('/')) {
+  if (project.display === 'gallery' && onOpen) {
     return (
-      <Link className={className} to={project.href}>
+      <button type="button" className={className} onClick={() => onOpen(project)} aria-haspopup="dialog">
         {overlay}
         <span>{project.title}</span>
-      </Link>
+      </button>
     );
   }
+  if (!project.href) return <span>{project.title}</span>;
   return (
-    <a className={className} href={project.href} target="_blank" rel="noreferrer noopener">
+    <a
+      className={className}
+      href={project.href}
+      target="_blank"
+      rel="noreferrer noopener"
+      onClick={() => track('recordOutboundClick', project.id, project.href)}
+    >
       {overlay}
       <span>{project.title}</span>
       <span className="sr-only"> (opens in a new tab)</span>
@@ -106,9 +126,35 @@ export function ThumbnailPlaceholder({ type }) {
 }
 
 // 16:9 thumbnail. Cloudinary images are served at the size the card needs (320/640/960 px).
+// Posts (posters, banners) are shown whole on a dark backdrop instead of being cropped.
 function ProjectThumbnail({ project }) {
   const [failed, setFailed] = useState(false);
   if (!project.thumbnail || failed) return <ThumbnailPlaceholder type={project.type} />;
+
+  if (project.display === 'gallery') {
+    const slideCount = buildSlides(project).length;
+    return (
+      <div className="relative aspect-video w-full bg-slate-950">
+        <img
+          src={fitImageUrl(project.thumbnail, 640, 360)}
+          alt={project.thumbnailAlt}
+          width="640"
+          height="360"
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="h-full w-full object-contain"
+        />
+        {slideCount > 1 && (
+          <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-semibold text-slate-100">
+            <FaClone className="h-2.5 w-2.5" aria-hidden="true" />
+            {slideCount}
+            <span className="sr-only"> images</span>
+          </span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <img
       src={cardImageUrl(project.thumbnail, 640)}
@@ -124,7 +170,7 @@ function ProjectThumbnail({ project }) {
   );
 }
 
-export function ProjectCard({ project }) {
+export function ProjectCard({ project, onOpen }) {
   const shownTags = project.tags.slice(0, MAX_TAGS);
   const hiddenTags = project.tags.slice(MAX_TAGS);
 
@@ -138,7 +184,7 @@ export function ProjectCard({ project }) {
 
       <div className="z-10 min-w-0 sm:col-span-5">
         <h3 className="font-medium leading-snug text-slate-200">
-          <ProjectTitleLink project={project} />
+          <ProjectTitleAction project={project} onOpen={onOpen} />
         </h3>
 
         <p className="mt-2 line-clamp-2 text-sm leading-normal">{project.description}</p>
@@ -172,6 +218,51 @@ function ProjectsPage() {
   const [category, setCategory] = useState('all');
   const { status, projects: allProjects, categories } = usePortfolioData();
   const activeMode = MODES.find((m) => m.id === mode);
+  const [openPost, setOpenPost] = useState(null);
+  const pushedHash = useRef(false);
+
+  // Posts get a shareable URL: /#post=<slug>. Opening one adds a history entry so Back closes it.
+  const openViewer = useCallback((project) => {
+    setOpenPost(project);
+    track('recordView', project.id);
+    const hash = `#${POST_HASH_PREFIX}${project.slug}`;
+    if (window.location.hash !== hash) {
+      window.history.pushState(null, '', hash);
+      pushedHash.current = true;
+    }
+  }, []);
+
+  const closeViewer = useCallback(() => {
+    setOpenPost(null);
+    if (pushedHash.current) {
+      pushedHash.current = false;
+      window.history.back();
+    } else if (window.location.hash.startsWith(`#${POST_HASH_PREFIX}`)) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }, []);
+
+  // Open a shared post link once projects have loaded, and follow Back/Forward.
+  useEffect(() => {
+    if (status !== 'ready') return undefined;
+    const sync = () => {
+      const hash = window.location.hash;
+      const slug = hash.startsWith(`#${POST_HASH_PREFIX}`) ? hash.slice(POST_HASH_PREFIX.length + 1) : null;
+      const post = slug && allProjects.find((p) => p.slug === slug && p.display === 'gallery');
+      if (post) {
+        setMode(MODES.find((m) => m.type === post.type)?.id || 'design');
+        setOpenPost(post);
+        track('recordView', post.id); // de-duplicated per session, so Back/Forward won't double count
+        document.getElementById('projects')?.scrollIntoView();
+      } else {
+        pushedHash.current = false;
+        setOpenPost(null);
+      }
+    };
+    sync();
+    window.addEventListener('popstate', sync);
+    return () => window.removeEventListener('popstate', sync);
+  }, [status, allProjects]);
 
   const switchMode = (id) => {
     setMode(id);
@@ -251,9 +342,17 @@ function ProjectsPage() {
       )}
       <ul className="space-y-2">
         {visibleProjects.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+          <ProjectCard key={project.id} project={project} onOpen={openViewer} />
         ))}
       </ul>
+      {openPost && (
+        <PostViewer
+          project={openPost}
+          categoryNames={openPost.categoryIds.map((id) => categories.find((c) => c.id === id)?.name).filter(Boolean)}
+          onClose={closeViewer}
+          onLinkClick={(url) => track('recordOutboundClick', openPost.id, url)}
+        />
+      )}
     </div>
   );
 }

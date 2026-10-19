@@ -7,6 +7,7 @@ import {
   parseTags,
   parseVideoUrl,
   PROJECT_TYPES,
+  slugFromTitle,
   slugify,
   validateProject,
   videoEmbedUrl,
@@ -30,7 +31,9 @@ import {
   ValidationError,
 } from '../services/projectService';
 import { ProjectCard } from '../components/projects';
-import { Banner, buttonClass, Field, formatDate, inputClass, smallButtonClass, StatusBadge, useSession } from './ui';
+import PostViewer from '../components/postViewer';
+import { fitImageUrl } from '../lib/images';
+import { Banner, buttonClass, Field, formatDate, inputClass, SegmentedControl, smallButtonClass, StatusBadge, useSession } from './ui';
 import { MediaPicker, UploadButton } from './MediaAdmin';
 
 const errorMessage = (err) =>
@@ -226,8 +229,13 @@ export function ProjectsList() {
                       <Link to={`/admin/projects/${p.id}`} className={smallButtonClass.secondary}>
                         Edit
                       </Link>
-                      {p.status === 'published' && (
-                        <a href={`/projects/${p.slug}`} target="_blank" rel="noreferrer noopener" className={smallButtonClass.secondary}>
+                      {p.status === 'published' && (p.display === 'gallery' || p.projectUrl) && (
+                        <a
+                          href={p.display === 'gallery' ? `/#post=${p.slug}` : p.projectUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className={smallButtonClass.secondary}
+                        >
                           View
                         </a>
                       )}
@@ -294,6 +302,8 @@ const EMPTY_FORM = {
   links: [],
   featured: false,
   sortOrder: 0,
+  display: 'link',
+  gallery: [],
 };
 
 function toForm(project) {
@@ -312,6 +322,8 @@ function toForm(project) {
     links: project.links || [],
     featured: Boolean(project.featured),
     sortOrder: project.sortOrder ?? 0,
+    display: project.display || 'link',
+    gallery: project.gallery || [],
   };
 }
 
@@ -330,6 +342,8 @@ function toInput(form) {
     links: form.links,
     featured: form.featured,
     sortOrder: Number(form.sortOrder),
+    display: form.display,
+    gallery: form.gallery,
   };
 }
 
@@ -348,6 +362,7 @@ export function ProjectEditor() {
   const [errors, setErrors] = useState({});
   const [notice, setNotice] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoadState('loading');
@@ -390,18 +405,37 @@ export function ProjectEditor() {
 
   const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
   const onTitle = (value) =>
-    setForm((f) => ({ ...f, title: value, slug: slugTouched ? f.slug : slugify(value) }));
+    setForm((f) => ({ ...f, title: value, slug: slugTouched ? f.slug : slugFromTitle(value) }));
   const onType = (type) =>
     setForm((f) => ({
       ...f,
       type,
       categoryIds: f.categoryIds.filter((cid) => categories.find((c) => c.id === cid)?.projectTypes?.includes(type)),
     }));
+  // Ticking "Others" (posters, banners…) switches the card to the post popup.
   const toggleCategory = (cid) =>
-    setForm((f) => ({
-      ...f,
-      categoryIds: f.categoryIds.includes(cid) ? f.categoryIds.filter((x) => x !== cid) : [...f.categoryIds, cid],
-    }));
+    setForm((f) => {
+      const adding = !f.categoryIds.includes(cid);
+      return {
+        ...f,
+        categoryIds: adding ? [...f.categoryIds, cid] : f.categoryIds.filter((x) => x !== cid),
+        display: adding && cid === 'others' ? 'gallery' : f.display,
+      };
+    });
+  const addGalleryImage = (item) =>
+    setForm((f) =>
+      f.gallery.some((img) => img.url === item.url) ? f : { ...f, gallery: [...f.gallery, { url: item.url, alt: item.altText || '' }] }
+    );
+  const updateGalleryAlt = (index, alt) =>
+    setForm((f) => ({ ...f, gallery: f.gallery.map((img, i) => (i === index ? { ...img, alt } : img)) }));
+  const moveGalleryImage = (index, step) =>
+    setForm((f) => {
+      const gallery = [...f.gallery];
+      const target = index + step;
+      if (target < 0 || target >= gallery.length) return f;
+      [gallery[index], gallery[target]] = [gallery[target], gallery[index]];
+      return { ...f, gallery };
+    });
   const updateLink = (index, key, value) =>
     setForm((f) => ({ ...f, links: f.links.map((l, i) => (i === index ? { ...l, [key]: value } : l)) }));
 
@@ -477,10 +511,16 @@ export function ProjectEditor() {
     type: form.type,
     title: form.title || 'Project title',
     description: form.shortDescription || 'Short description',
-    thumbnail: isSafeUrl(form.coverUrl) ? form.coverUrl : null,
+    fullDescription: form.description,
+    thumbnail: isSafeUrl(form.coverUrl) ? form.coverUrl : form.gallery.find((img) => isSafeUrl(img.url))?.url || null,
     thumbnailAlt: form.coverAlt,
     tags: parseTags(form.techStackText),
-    href: null,
+    display: form.display,
+    href: isSafeUrl(form.projectUrl) ? form.projectUrl : null,
+    links: form.links.filter((l) => l.label && isSafeUrl(l.url)),
+    gallery: form.gallery.filter((img) => isSafeUrl(img.url)),
+    videoEmbedUrl: videoEmbedUrl(parseVideoUrl(form.videoUrl)),
+    videoFileUrl: videoFileUrl(parseVideoUrl(form.videoUrl)),
     categoryIds: form.categoryIds,
   };
   const errorProps = (key) =>
@@ -519,7 +559,7 @@ export function ProjectEditor() {
           <Field id="title" label="Title" required error={errors.title}>
             <input id="title" className={inputClass} value={form.title} onChange={(e) => onTitle(e.target.value)} {...errorProps('title')} />
           </Field>
-          <Field id="slug" label="Slug" required hint="Used in the project's URL. Lowercase letters, numbers and hyphens." error={errors.slug}>
+          <Field id="slug" label="Slug" required hint="Short name for the project's link, e.g. deskmate. Lowercase letters, numbers and hyphens." error={errors.slug}>
             <input
               id="slug"
               className={inputClass}
@@ -569,6 +609,64 @@ export function ProjectEditor() {
             {errors.categoryIds && <p id="categoryIds-error" className="mt-1 text-xs text-red-300">{errors.categoryIds}</p>}
           </fieldset>
 
+          <div>
+            <p className="mb-1 text-sm font-medium text-slate-200">When the card is clicked</p>
+            <SegmentedControl
+              ariaLabel="When the card is clicked"
+              value={form.display}
+              onChange={(value) => update('display', value)}
+              options={[
+                { value: 'link', label: 'Open link' },
+                { value: 'gallery', label: 'Show post popup' },
+              ]}
+            />
+            <p className="mt-1 text-xs text-admin-muted">
+              {form.display === 'gallery'
+                ? 'Opens an Instagram-style popup with the images below. Good for posters and banners.'
+                : 'Opens the primary link in a new tab. Without a link, the card is not clickable.'}
+            </p>
+          </div>
+
+          {form.display === 'gallery' && (
+            <fieldset aria-describedby={errors.gallery ? 'gallery-error' : undefined}>
+              <legend className="mb-1 text-sm font-medium text-slate-200">
+                Post images<span className="text-teal-300"> *</span>
+              </legend>
+              <p className="mb-3 text-xs text-admin-muted">
+                Shown as a carousel, in this order. Any size works; portrait 4:5 (1080 × 1350 px) fits the popup best.
+              </p>
+              {form.gallery.length > 0 && (
+                <ul className="mb-3 space-y-2">
+                  {form.gallery.map((img, i) => (
+                    <li key={img.url} className="flex items-center gap-3 rounded-md border border-slate-700/70 p-2">
+                      <img src={fitImageUrl(img.url, 160)} alt="" className="h-16 w-16 shrink-0 rounded bg-slate-950 object-contain" />
+                      <input
+                        aria-label={`Alt text for image ${i + 1}`}
+                        placeholder="Alt text (describe the image)"
+                        className={inputClass}
+                        value={img.alt}
+                        onChange={(e) => updateGalleryAlt(i, e.target.value)}
+                      />
+                      <div className="flex shrink-0 gap-1">
+                        <button type="button" className={smallButtonClass.secondary} disabled={i === 0}
+                          onClick={() => moveGalleryImage(i, -1)} aria-label={`Move image ${i + 1} up`}>↑</button>
+                        <button type="button" className={smallButtonClass.secondary} disabled={i === form.gallery.length - 1}
+                          onClick={() => moveGalleryImage(i, 1)} aria-label={`Move image ${i + 1} down`}>↓</button>
+                        <button type="button" className={smallButtonClass.danger}
+                          onClick={() => update('gallery', form.gallery.filter((_, x) => x !== i))} aria-label={`Remove image ${i + 1}`}>✕</button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex flex-wrap items-start gap-4">
+                <UploadButton type="image" label="Upload images" multiple onUploaded={addGalleryImage} />
+                <MediaPicker type="image" onPick={addGalleryImage} />
+              </div>
+              {errors.gallery && <p id="gallery-error" className="mt-1 text-xs text-red-300">{errors.gallery}</p>}
+            </fieldset>
+          )}
+
           <Field id="shortDescription" label="Short description" required hint="Shown on the project card (2 lines)." error={errors.shortDescription}>
             <textarea id="shortDescription" rows={2} className={inputClass} value={form.shortDescription}
               onChange={(e) => update('shortDescription', e.target.value)} {...errorProps('shortDescription')} />
@@ -582,7 +680,9 @@ export function ProjectEditor() {
               onChange={(e) => update('techStackText', e.target.value)} {...errorProps('techStack')} />
           </Field>
 
-          <Field id="coverUrl" label="Cover image URL" hint="Use a 16:9 image, ideally 1600 × 900 px (at least 1280 × 720). Upload, choose from the library, or paste an https:// URL. Required to publish." error={errors.coverUrl}>
+          <Field id="coverUrl" label="Cover image URL" hint={form.display === 'gallery'
+              ? 'Optional for posts: the first post image is used if this is empty. Shown on the card.'
+              : 'Use a 16:9 image, ideally 1600 × 900 px (at least 1280 × 720). Upload, choose from the library, or paste an https:// URL. Required to publish.'} error={errors.coverUrl}>
             <input id="coverUrl" type="url" className={inputClass} value={form.coverUrl}
               onChange={(e) => update('coverUrl', e.target.value)} {...errorProps('coverUrl')} />
           </Field>
@@ -597,7 +697,7 @@ export function ProjectEditor() {
               onChange={(e) => update('coverAlt', e.target.value)} {...errorProps('coverAlt')} />
           </Field>
 
-          <Field id="videoUrl" label="Video link" hint="Optional. Paste a YouTube or Vimeo link, or upload a video. Shown on the project's detail page." error={errors.videoUrl}>
+          <Field id="videoUrl" label="Video link" hint="Optional. Paste a YouTube or Vimeo link, or upload a video. Shown as the first slide of the post popup." error={errors.videoUrl}>
             <input id="videoUrl" type="url" className={inputClass} value={form.videoUrl}
               onChange={(e) => update('videoUrl', e.target.value)} {...errorProps('videoUrl')} />
           </Field>
@@ -621,7 +721,7 @@ export function ProjectEditor() {
             </div>
           )}
 
-          <Field id="projectUrl" label="Primary link" hint="Main external link on the project's detail page (live site, case study…). https:// only." error={errors.projectUrl}>
+          <Field id="projectUrl" label="Primary link" hint="Where the card opens: live site, Figma, Behance, case study… https:// only." error={errors.projectUrl}>
             <input id="projectUrl" type="url" className={inputClass} value={form.projectUrl}
               onChange={(e) => update('projectUrl', e.target.value)} {...errorProps('projectUrl')} />
           </Field>
@@ -691,8 +791,20 @@ export function ProjectEditor() {
           <h2 className="mb-2 text-sm font-medium text-slate-200">Preview</h2>
           <p className="mb-3 text-xs text-admin-muted">How the card will look on the portfolio. Only visible to you.</p>
           <ul className="rounded-lg border border-slate-700/70 lg:sticky lg:top-6">
-            <ProjectCard project={preview} />
+            <ProjectCard project={preview} onOpen={() => setPreviewOpen(true)} />
           </ul>
+          {form.display === 'gallery' && (
+            <button type="button" className={`${smallButtonClass.secondary} mt-3`} onClick={() => setPreviewOpen(true)}>
+              Preview popup
+            </button>
+          )}
+          {previewOpen && (
+            <PostViewer
+              project={preview}
+              categoryNames={form.categoryIds.map((cid) => categories.find((c) => c.id === cid)?.name).filter(Boolean)}
+              onClose={() => setPreviewOpen(false)}
+            />
+          )}
         </aside>
       </form>
     </section>

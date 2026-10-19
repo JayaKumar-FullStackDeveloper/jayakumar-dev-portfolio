@@ -20,25 +20,32 @@ function MediaPreview({ item, className }) {
 
 /* ---------- Upload button (used in the project editor and the library) ---------- */
 
-export function UploadButton({ type, label, onUploaded }) {
+// `multiple`: pick several files; they upload one after another and onUploaded runs for each.
+export function UploadButton({ type, label, onUploaded, multiple = false }) {
   const { user } = useSession();
   const inputRef = useRef(null);
   const [progress, setProgress] = useState(null);
+  const [batch, setBatch] = useState(null); // { current, total } while uploading several files
   const [error, setError] = useState('');
 
-  const upload = async (file) => {
-    if (!file) return;
+  const upload = async (files) => {
+    if (!files.length) return;
     setError('');
-    setProgress(0);
-    try {
-      const item = await uploadFile(file, user.uid, { expectedType: type, onProgress: setProgress });
-      onUploaded(item);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setProgress(null);
-      if (inputRef.current) inputRef.current.value = '';
+    const failures = [];
+    for (const [i, file] of files.entries()) {
+      setBatch(files.length > 1 ? { current: i + 1, total: files.length } : null);
+      setProgress(0);
+      try {
+        const item = await uploadFile(file, user.uid, { expectedType: type, onProgress: setProgress });
+        onUploaded(item);
+      } catch (err) {
+        failures.push(files.length > 1 ? `${file.name}: ${err.message}` : err.message);
+      }
     }
+    setError(failures.join(' '));
+    setProgress(null);
+    setBatch(null);
+    if (inputRef.current) inputRef.current.value = '';
   };
 
   return (
@@ -49,10 +56,11 @@ export function UploadButton({ type, label, onUploaded }) {
         accept={type ? MEDIA_LIMITS[type].accept : `${MEDIA_LIMITS.image.accept},${MEDIA_LIMITS.video.accept}`}
         className="sr-only"
         tabIndex={-1}
-        onChange={(e) => upload(e.target.files[0])}
+        multiple={multiple}
+        onChange={(e) => upload([...e.target.files])}
       />
       <button type="button" className={smallButtonClass.secondary} disabled={progress !== null} onClick={() => inputRef.current?.click()}>
-        {progress !== null ? `Uploading… ${progress}%` : label}
+        {progress !== null ? `Uploading${batch ? ` ${batch.current}/${batch.total}` : ''}… ${progress}%` : label}
       </button>
       {progress !== null && (
         <div className="mt-2 h-1 w-40 overflow-hidden rounded bg-slate-800" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Upload progress">

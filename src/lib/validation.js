@@ -2,6 +2,8 @@
 // checks server-side; this module exists for usable, field-level error messages.
 
 export const PROJECT_TYPES = ['Design', 'Development'];
+// What a project card does when clicked: open its primary link, or show the post popup.
+export const DISPLAY_MODES = ['link', 'gallery'];
 export const LINK_TYPES = ['Live Demo', 'Case Study', 'Figma', 'Behance', 'Repository', 'Other'];
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -18,6 +20,7 @@ export const LIMITS = {
   alt: 200,
   categoryName: 60,
   categoryDescription: 300,
+  gallery: 20,
 };
 
 export function slugify(value) {
@@ -29,6 +32,13 @@ export function slugify(value) {
     .replace(/^-+|-+$/g, '')
     .slice(0, LIMITS.slug)
     .replace(/-+$/, '');
+}
+
+// Short slug for a new project: the part of the title before " - ", " – ", ":" or "|",
+// at most 6 words. "Deskmate - Tracking office seats" -> "deskmate".
+export function slugFromTitle(title) {
+  const head = String(title || '').split(/\s[-–—|]\s|:|\|/)[0];
+  return slugify(head.trim().split(/\s+/).slice(0, 6).join(' '));
 }
 
 // Only https:// URLs are accepted. Rejects javascript:, data:, http: and malformed values.
@@ -167,7 +177,9 @@ export function validateProject(project, { publish = false, categories = [] } = 
   else if (techStack.some((tag) => tag.length > LIMITS.tag)) errors.techStack = `Keep each tag under ${LIMITS.tag} characters.`;
 
   if (cover.url && !isSafeUrl(cover.url)) errors.coverUrl = 'Use a valid https:// image URL.';
-  else if (publish && !cover.url) errors.coverUrl = 'A cover image is required to publish.';
+  else if (publish && !cover.url && !(project.gallery || []).length) {
+    errors.coverUrl = 'A cover image is required to publish.';
+  }
   if ((cover.alt || '').length > LIMITS.alt) errors.coverAlt = `Keep alt text under ${LIMITS.alt} characters.`;
   else if (publish && cover.url && !(cover.alt || '').trim()) errors.coverAlt = 'Describe the cover image to publish.';
 
@@ -184,6 +196,14 @@ export function validateProject(project, { publish = false, categories = [] } = 
   });
 
   if (!Number.isFinite(Number(project.sortOrder))) errors.sortOrder = 'Sort order must be a number.';
+
+  const display = project.display || 'link';
+  const gallery = project.gallery || [];
+  if (!DISPLAY_MODES.includes(display)) errors.display = 'Choose what happens when the card is clicked.';
+  if (gallery.length > LIMITS.gallery) errors.gallery = `Add at most ${LIMITS.gallery} images.`;
+  else if (gallery.some((img) => !isSafeUrl(img.url))) errors.gallery = 'Every image needs a valid https:// URL.';
+  else if (gallery.some((img) => (img.alt || '').length > LIMITS.alt)) errors.gallery = `Keep alt text under ${LIMITS.alt} characters.`;
+  else if (publish && display === 'gallery' && gallery.length === 0) errors.gallery = 'Add at least one image to publish a post.';
 
   return errors;
 }
