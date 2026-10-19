@@ -1,4 +1,13 @@
-import { isSafeUrl, parseTags, slugify, validateCategory, validateProject } from './validation';
+import {
+  isSafeUrl,
+  parseTags,
+  parseVideoUrl,
+  slugify,
+  validateCategory,
+  validateProject,
+  videoEmbedUrl,
+  videoWatchUrl,
+} from './validation';
 
 const categories = [
   { id: 'web-app', active: true, projectTypes: ['Design'] },
@@ -75,4 +84,27 @@ test('validateCategory requires name, slug and a project type', () => {
     expect.objectContaining({ name: expect.any(String), slug: expect.any(String), projectTypes: expect.any(String) })
   );
   expect(validateCategory({ name: 'Web App', slug: 'web-app', projectTypes: ['Design'], sortOrder: 1 })).toEqual({});
+});
+
+test('parseVideoUrl accepts YouTube/Vimeo links and rejects everything else', () => {
+  const yt = { provider: 'youtube', videoId: 'dQw4w9WgXcQ' };
+  expect(parseVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10')).toEqual(yt);
+  expect(parseVideoUrl('https://youtu.be/dQw4w9WgXcQ')).toEqual(yt);
+  expect(parseVideoUrl('https://www.youtube.com/shorts/dQw4w9WgXcQ')).toEqual(yt);
+  expect(parseVideoUrl('https://vimeo.com/76979871')).toEqual({ provider: 'vimeo', videoId: '76979871' });
+  expect(parseVideoUrl('https://player.vimeo.com/video/76979871')).toEqual({ provider: 'vimeo', videoId: '76979871' });
+
+  expect(parseVideoUrl('https://evil.example/embed/dQw4w9WgXcQ')).toBeNull();
+  expect(parseVideoUrl('https://youtube.com.evil.example/watch?v=dQw4w9WgXcQ')).toBeNull();
+  expect(parseVideoUrl('https://www.youtube.com/watch?v=<script>')).toBeNull();
+  expect(parseVideoUrl('javascript:alert(1)')).toBeNull();
+});
+
+test('embed URLs are rebuilt from validated IDs only', () => {
+  expect(videoEmbedUrl({ provider: 'youtube', videoId: 'dQw4w9WgXcQ' })).toBe('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+  expect(videoEmbedUrl({ provider: 'vimeo', videoId: '76979871' })).toBe('https://player.vimeo.com/video/76979871?dnt=1');
+  expect(videoEmbedUrl({ provider: 'youtube', videoId: '../../evil' })).toBeNull();
+  expect(videoEmbedUrl({ provider: 'other', videoId: '123456' })).toBeNull();
+  expect(videoWatchUrl({ provider: 'vimeo', videoId: '76979871' })).toBe('https://vimeo.com/76979871');
+  expect(validateProject({ ...validDraft, videoUrl: 'https://example.com/video.mp4' }, { categories })).toHaveProperty('videoUrl');
 });

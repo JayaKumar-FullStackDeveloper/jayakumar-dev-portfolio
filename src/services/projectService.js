@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { LEGACY_PROJECTS } from '../data/legacyProjects';
-import { parseTags, validateProject } from '../lib/validation';
+import { parseTags, parseVideoUrl, validateProject } from '../lib/validation';
 import { auditWrite } from './auditService';
 import { listCategories, seedDefaultCategories } from './categoryService';
 
@@ -33,6 +33,7 @@ export class ConflictError extends Error {}
 
 function editableFields(input) {
   const cover = input.coverMedia || {};
+  const video = input.videoUrl ? parseVideoUrl(input.videoUrl) : null;
   return {
     title: input.title.trim(),
     slug: input.slug,
@@ -42,7 +43,8 @@ function editableFields(input) {
     categoryIds: input.categoryIds,
     techStack: input.techStack,
     coverMedia: cover.url ? { type: 'image', url: cover.url.trim(), alt: (cover.alt || '').trim() } : null,
-    media: input.media || [],
+    // media[] currently holds at most one external video: { type, provider, videoId }.
+    media: video ? [{ type: 'video', ...video }] : [],
     links: (input.links || []).map((link) => ({ label: link.label.trim(), type: link.type, url: link.url.trim() })),
     projectUrl: (input.projectUrl || '').trim(),
     featured: Boolean(input.featured),

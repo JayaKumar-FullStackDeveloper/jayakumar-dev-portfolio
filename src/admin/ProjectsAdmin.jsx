@@ -1,7 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { LEGACY_PROJECTS } from '../data/legacyProjects';
-import { isSafeUrl, LINK_TYPES, parseTags, PROJECT_TYPES, slugify, validateProject } from '../lib/validation';
+import {
+  isSafeUrl,
+  LINK_TYPES,
+  parseTags,
+  parseVideoUrl,
+  PROJECT_TYPES,
+  slugify,
+  validateProject,
+  videoEmbedUrl,
+  videoWatchUrl,
+} from '../lib/validation';
 import { listCategories } from '../services/categoryService';
 import {
   archiveProject,
@@ -214,6 +224,11 @@ export function ProjectsList() {
                       <Link to={`/admin/projects/${p.id}`} className={smallButtonClass.secondary}>
                         Edit
                       </Link>
+                      {p.status === 'published' && (
+                        <a href={`/projects/${p.slug}`} target="_blank" rel="noreferrer noopener" className={smallButtonClass.secondary}>
+                          View
+                        </a>
+                      )}
                       {p.status === 'published' ? (
                         <button type="button" disabled={busy} className={smallButtonClass.secondary}
                           onClick={() => run(p.id, () => unpublishProject(p.id, uid),
@@ -272,6 +287,7 @@ const EMPTY_FORM = {
   techStackText: '',
   coverUrl: '',
   coverAlt: '',
+  videoUrl: '',
   projectUrl: '',
   links: [],
   featured: false,
@@ -289,6 +305,7 @@ function toForm(project) {
     techStackText: (project.techStack || []).join(', '),
     coverUrl: project.coverMedia?.url || '',
     coverAlt: project.coverMedia?.alt || '',
+    videoUrl: videoWatchUrl((project.media || []).find((m) => m.type === 'video')),
     projectUrl: project.projectUrl || '',
     links: project.links || [],
     featured: Boolean(project.featured),
@@ -306,6 +323,7 @@ function toInput(form) {
     categoryIds: form.categoryIds,
     techStack: parseTags(form.techStackText),
     coverMedia: { url: form.coverUrl.trim(), alt: form.coverAlt },
+    videoUrl: form.videoUrl.trim(),
     projectUrl: form.projectUrl.trim(),
     links: form.links,
     featured: form.featured,
@@ -460,7 +478,7 @@ export function ProjectEditor() {
     thumbnail: isSafeUrl(form.coverUrl) ? form.coverUrl : null,
     thumbnailAlt: form.coverAlt,
     tags: parseTags(form.techStackText),
-    href: isSafeUrl(form.projectUrl) ? form.projectUrl : null,
+    href: null,
     categoryIds: form.categoryIds,
   };
   const errorProps = (key) =>
@@ -571,7 +589,24 @@ export function ProjectEditor() {
               onChange={(e) => update('coverAlt', e.target.value)} {...errorProps('coverAlt')} />
           </Field>
 
-          <Field id="projectUrl" label="Primary link" hint="Opens when visitors click the project card. https:// only." error={errors.projectUrl}>
+          <Field id="videoUrl" label="Video link" hint="Optional. YouTube or Vimeo only; shown on the project's detail page." error={errors.videoUrl}>
+            <input id="videoUrl" type="url" className={inputClass} value={form.videoUrl}
+              onChange={(e) => update('videoUrl', e.target.value)} {...errorProps('videoUrl')} />
+          </Field>
+          {videoEmbedUrl(parseVideoUrl(form.videoUrl)) && (
+            <div className="aspect-video overflow-hidden rounded-md border border-slate-700">
+              <iframe
+                title="Video preview"
+                src={videoEmbedUrl(parseVideoUrl(form.videoUrl))}
+                className="h-full w-full"
+                loading="lazy"
+                allow="encrypted-media; picture-in-picture; fullscreen"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
+          )}
+
+          <Field id="projectUrl" label="Primary link" hint="Main external link on the project's detail page (live site, case study…). https:// only." error={errors.projectUrl}>
             <input id="projectUrl" type="url" className={inputClass} value={form.projectUrl}
               onChange={(e) => update('projectUrl', e.target.value)} {...errorProps('projectUrl')} />
           </Field>

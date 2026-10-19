@@ -6,6 +6,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 // The admin area is loaded only when /admin is opened, so visitors never download it.
 const AdminApp = lazy(() => import('./admin/AdminApp'));
+const ProjectDetail = lazy(() => import('./components/projectDetail'));
+const pageFallback = <div className="min-h-screen bg-slate-900" />;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -14,8 +16,16 @@ root.render(
  <Route
  path="/admin/*"
  element={
- <Suspense fallback={<div className="min-h-screen bg-slate-900" />}>
+ <Suspense fallback={pageFallback}>
  <AdminApp />
+ </Suspense>
+ }
+ />
+ <Route
+ path="/projects/:slug"
+ element={
+ <Suspense fallback={pageFallback}>
+ <ProjectDetail />
  </Suspense>
  }
  />

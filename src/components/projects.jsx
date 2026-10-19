@@ -22,7 +22,7 @@ const STATIC_PORTFOLIO = {
     thumbnail: p.thumbnail,
     thumbnailAlt: '',
     tags: parseTags(p.platform),
-    href: p.link,
+    href: null, // detail pages need Firebase
     categoryIds: [p.category],
     featured: false,
     sortOrder: index,

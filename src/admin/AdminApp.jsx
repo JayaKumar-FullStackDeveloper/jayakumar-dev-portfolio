@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { isFirebaseConfigured } from '../lib/firebaseConfig';
 import { isActiveAdmin, requestPasswordReset, signIn, signOutUser, watchAuth } from '../services/authService';
+import { markAdminDevice } from '../services/analyticsService';
 import { Banner, buttonClass, Field, inputClass, SessionContext, useSession } from './ui';
 import { ProjectEditor, ProjectsList } from './ProjectsAdmin';
 import CategoriesAdmin from './CategoriesAdmin';
+import AnalyticsAdmin from './AnalyticsAdmin';
 
 // Private admin area, mounted at /admin/*. Not linked from the public site.
 // Route guards here are for UX only; Firestore Security Rules are the security boundary.
@@ -57,6 +59,7 @@ function SessionProvider({ children }) {
         setSession({ status: 'loading', user });
         try {
           const admin = await isActiveAdmin(user.uid);
+          if (admin) markAdminDevice(); // exclude this browser from analytics
           setSession({ status: admin ? 'admin' : 'denied', user });
         } catch (err) {
           setSession({ status: err.code === 'permission-denied' ? 'denied' : 'error', user });
@@ -235,6 +238,9 @@ function AdminLayout() {
             <NavLink to="/admin/categories" className={navClass}>
               Categories
             </NavLink>
+            <NavLink to="/admin/analytics" className={navClass}>
+              Analytics
+            </NavLink>
           </nav>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -278,6 +284,7 @@ export default function AdminApp() {
               <Route path="projects/new" element={<ProjectEditor />} />
               <Route path="projects/:id" element={<ProjectEditor />} />
               <Route path="categories" element={<CategoriesAdmin />} />
+              <Route path="analytics" element={<AnalyticsAdmin />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/admin" replace />} />

@@ -117,16 +117,39 @@ After deploying, also check the live behaviour:
 
 - **Audit trail:** every change writes an `auditEvents` record.
 
-## 5. Not built yet
+## 5. Detail pages, video and analytics
 
-- **Media uploads:** blocked until a provider is chosen (see the BRD). For now the
-  cover image is an https URL. Firebase Storage needs the Blaze plan, so it's off
-  the table under the Spark plan.
-- **External video (YouTube/Vimeo):** validation and embeds aren't built yet.
-- **Analytics:** view and click events and the admin analytics screen aren't built
-  yet. The rules for them are already in place.
-- **Public project detail pages:** there's no `/projects/:slug` page yet. Cards
-  link to the project's primary https URL when one is set.
+- **Detail pages:** every published project has a page at `/projects/<slug>`. Cards
+  open it; the page shows the cover or video, the full description, tags and links.
+  Unpublished or unknown slugs show "Project not found".
+- **Video:** paste a YouTube or Vimeo link in the editor's **Video link** field. Only
+  the provider and a validated video ID are stored. The player URL is rebuilt from
+  them (YouTube uses `youtube-nocookie.com`, Vimeo uses `dnt=1`), so no other site
+  can be embedded.
+- **Analytics** (`analyticsEvents` collection, Admin → Analytics):
+
+  | Metric | When it's counted |
+  |---|---|
+  | View | A detail page opens. At most once per project per browser session every 30 minutes. |
+  | Outbound click | A visitor clicks a project link on the detail page. |
+
+- **Not counted:**
+  - Browsers that have signed in to `/admin` (a flag in localStorage marks them)
+  - Automated browsers
+  - Anything that happens on the destination site
+- **Data:** no visitor IDs, IP addresses or cookies are stored, so unique visitors
+  aren't reported.
+- **Trust:** events are written from the browser and can be faked; the rules only
+  accept events for published projects, with an exact field list.
+- **Cost:** the analytics screen reads up to 5,000 raw events per load. The Spark
+  plan allows 50,000 reads a day, which is plenty for a portfolio. Move to daily
+  totals if traffic grows.
+
+### Still pending
+
+- **Uploads:** waiting on the Cloudinary setup (signed or unsigned upload). Until
+  then, the cover image is an https URL.
+- **Admin pagination:** the admin list loads up to 500 projects.
 
 ## 6. Known limitations
 

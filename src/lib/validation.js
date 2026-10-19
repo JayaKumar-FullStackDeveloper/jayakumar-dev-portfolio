@@ -42,6 +42,57 @@ export function isSafeUrl(value) {
   }
 }
 
+/* ---------- External video (YouTube / Vimeo only) ----------
+   Only the provider and a validated video ID are stored. Embed URLs are always rebuilt
+   from those two values, so an arbitrary URL can never end up in an iframe. */
+
+const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
+const VIMEO_ID = /^\d{6,12}$/;
+
+export function parseVideoUrl(value) {
+  if (!isSafeUrl(value)) return null;
+  const url = new URL(value);
+  const host = url.hostname.replace(/^(www|m)\./, '');
+  let provider = null;
+  let id = null;
+
+  if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+    provider = 'youtube';
+    id = url.pathname === '/watch' ? url.searchParams.get('v') : url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1];
+  } else if (host === 'youtu.be') {
+    provider = 'youtube';
+    id = url.pathname.split('/')[1];
+  } else if (host === 'vimeo.com') {
+    provider = 'vimeo';
+    id = url.pathname.split('/').filter(Boolean).pop();
+  } else if (host === 'player.vimeo.com') {
+    provider = 'vimeo';
+    id = url.pathname.match(/^\/video\/(\d+)/)?.[1];
+  }
+
+  if (provider === 'youtube' && YOUTUBE_ID.test(id || '')) return { provider, videoId: id };
+  if (provider === 'vimeo' && VIMEO_ID.test(id || '')) return { provider, videoId: id };
+  return null;
+}
+
+export function videoEmbedUrl(video) {
+  if (video?.provider === 'youtube' && YOUTUBE_ID.test(video.videoId || '')) {
+    return `https://www.youtube-nocookie.com/embed/${video.videoId}`;
+  }
+  if (video?.provider === 'vimeo' && VIMEO_ID.test(video.videoId || '')) {
+    return `https://player.vimeo.com/video/${video.videoId}?dnt=1`;
+  }
+  return null;
+}
+
+// Canonical watch URL, used to show a stored video back in the admin form.
+export function videoWatchUrl(video) {
+  if (!videoEmbedUrl(video)) return '';
+  return video.provider === 'youtube'
+    ? `https://www.youtube.com/watch?v=${video.videoId}`
+    : `https://vimeo.com/${video.videoId}`;
+}
+
 // "React, Tailwind CSS, react" -> ["React", "Tailwind CSS"]
 export function parseTags(text) {
   const seen = new Set();
@@ -108,6 +159,10 @@ export function validateProject(project, { publish = false, categories = [] } = 
   else if (publish && cover.url && !(cover.alt || '').trim()) errors.coverAlt = 'Describe the cover image to publish.';
 
   if (project.projectUrl && !isSafeUrl(project.projectUrl)) errors.projectUrl = 'Use a valid https:// URL.';
+
+  if (project.videoUrl && !parseVideoUrl(project.videoUrl)) {
+    errors.videoUrl = 'Use a YouTube or Vimeo video link.';
+  }
 
   if (links.length > LIMITS.links) errors.links = `Add at most ${LIMITS.links} links.`;
   links.forEach((link, i) => {
