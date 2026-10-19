@@ -194,7 +194,7 @@ export default function CategoriesAdmin() {
       {data.categories.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-700 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-slate-700 text-xs uppercase tracking-wide text-admin-muted">
               <tr>
                 <th className="py-2 pr-4 font-medium">Name</th>
                 <th className="py-2 pr-4 font-medium">Types</th>
@@ -211,7 +211,7 @@ export default function CategoriesAdmin() {
                   <tr key={c.id} className="border-b border-slate-800">
                     <td className="py-3 pr-4">
                       <span className="text-slate-200">{c.name}</span>
-                      <span className="block text-xs text-slate-500">/{c.slug}</span>
+                      <span className="block text-xs text-admin-muted">/{c.slug}</span>
                     </td>
                     <td className="py-3 pr-4">{(c.projectTypes || []).join(', ')}</td>
                     <td className="py-3 pr-4">{c.active ? 'Active' : 'Inactive'}</td>

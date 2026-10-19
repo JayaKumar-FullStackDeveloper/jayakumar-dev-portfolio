@@ -204,7 +204,7 @@ export function ProjectsList() {
                   <StatusBadge project={p} />
                   {p.featured && <span className="rounded-full bg-slate-700/60 px-2.5 py-0.5 text-xs">Featured</span>}
                 </div>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-admin-muted">
                   {p.type} · {(p.categoryIds || []).map(categoryName).join(', ') || 'No category'} · /{p.slug} · Updated{' '}
                   {formatDate(p.updatedAt)}
                 </p>
@@ -269,7 +269,7 @@ export function ProjectsList() {
         })}
       </ul>
       {data.projects.length >= 500 && (
-        <p className="mt-4 text-xs text-slate-500">Showing the 500 most recently updated projects.</p>
+        <p className="mt-4 text-xs text-admin-muted">Showing the 500 most recently updated projects.</p>
       )}
     </section>
   );
@@ -493,7 +493,7 @@ export function ProjectEditor() {
           {isNew ? 'New project' : 'Edit project'}
         </h1>
         {stored && <StatusBadge project={stored} />}
-        {dirty && <span className="text-xs text-slate-500">Unsaved changes</span>}
+        {dirty && <span className="text-xs text-admin-muted">Unsaved changes</span>}
       </div>
 
       {notice && (
@@ -552,7 +552,7 @@ export function ProjectEditor() {
               Categories<span className="text-teal-300"> *</span>
             </legend>
             {typeCategories.length === 0 ? (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-admin-muted">
                 No categories for this type yet. <Link to="/admin/categories" className="underline">Manage categories</Link>
               </p>
             ) : (
@@ -561,7 +561,7 @@ export function ProjectEditor() {
                   <label key={c.id} className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={form.categoryIds.includes(c.id)} onChange={() => toggleCategory(c.id)} className="accent-teal-400" />
                     {c.name}
-                    {!c.active && <span className="text-xs text-slate-500">(inactive)</span>}
+                    {!c.active && <span className="text-xs text-admin-muted">(inactive)</span>}
                   </label>
                 ))}
               </div>
@@ -683,13 +683,13 @@ export function ProjectEditor() {
             </button>
           </div>
           {isPublished && (
-            <p className="text-xs text-slate-500">This project is live. Saved changes appear on the public portfolio immediately.</p>
+            <p className="text-xs text-admin-muted">This project is live. Saved changes appear on the public portfolio immediately.</p>
           )}
         </div>
 
         <aside className="lg:col-span-2">
           <h2 className="mb-2 text-sm font-medium text-slate-200">Preview</h2>
-          <p className="mb-3 text-xs text-slate-500">How the card will look on the portfolio. Only visible to you.</p>
+          <p className="mb-3 text-xs text-admin-muted">How the card will look on the portfolio. Only visible to you.</p>
           <ul className="rounded-lg border border-slate-700/70 lg:sticky lg:top-6">
             <ProjectCard project={preview} />
           </ul>

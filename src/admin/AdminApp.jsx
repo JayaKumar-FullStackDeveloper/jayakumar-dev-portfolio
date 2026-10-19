@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { isFirebaseConfigured } from '../lib/firebaseConfig';
 import { isActiveAdmin, requestPasswordReset, signIn, signOutUser, watchAuth } from '../services/authService';
 import { markAdminDevice } from '../services/analyticsService';
-import { Banner, buttonClass, Field, inputClass, SessionContext, useSession } from './ui';
+import { Banner, buttonClass, Field, inputClass, SessionContext, ToastProvider, useSession } from './ui';
 import { ProjectEditor, ProjectsList } from './ProjectsAdmin';
 import CategoriesAdmin from './CategoriesAdmin';
 import AnalyticsAdmin from './AnalyticsAdmin';
@@ -256,6 +256,7 @@ export default function AdminApp() {
   return (
     <SessionProvider>
       <Screen>
+        <ToastProvider>
         <Routes>
           <Route path="login" element={<LoginPage />} />
           <Route element={<RequireAdmin />}>
@@ -270,6 +271,7 @@ export default function AdminApp() {
           </Route>
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
+        </ToastProvider>
       </Screen>
     </SessionProvider>
   );

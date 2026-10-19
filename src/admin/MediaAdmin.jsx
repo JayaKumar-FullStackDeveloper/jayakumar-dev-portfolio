@@ -86,7 +86,7 @@ export function MediaPicker({ type, onPick }) {
       <div className="mt-2">
         {state.status === 'loading' && <p className="text-xs" role="status">Loading…</p>}
         {state.status === 'error' && <p className="text-xs text-red-300">{state.error}</p>}
-        {state.status === 'ready' && state.items.length === 0 && <p className="text-xs text-slate-500">No {type}s uploaded yet.</p>}
+        {state.status === 'ready' && state.items.length === 0 && <p className="text-xs text-admin-muted">No {type}s uploaded yet.</p>}
         <div className="grid grid-cols-3 gap-2">
           {state.items.map((item) => (
             <button
@@ -231,7 +231,7 @@ export default function MediaAdmin() {
             }}
           />
         </label>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-admin-muted">
           Images: {MEDIA_LIMITS.image.label}. Videos: {MEDIA_LIMITS.video.label}.
         </p>
         {uploads.map((u) => (
@@ -254,12 +254,12 @@ export default function MediaAdmin() {
               <MediaPreview item={item} className="aspect-video w-full bg-slate-800 object-cover" />
               <div className="space-y-2 p-3 text-xs">
                 <p className="truncate text-sm text-slate-200" title={item.filename}>{item.filename}</p>
-                <p className="text-slate-500">
+                <p className="text-admin-muted">
                   {item.format?.toUpperCase()} · {formatBytes(item.sizeBytes)}
                   {item.width ? ` · ${item.width}×${item.height}` : ''}
                   {item.duration ? ` · ${Math.round(item.duration)}s` : ''}
                 </p>
-                <p className={usedBy.length ? 'text-teal-200' : 'text-slate-500'}>
+                <p className={usedBy.length ? 'text-teal-200' : 'text-admin-muted'}>
                   {usedBy.length ? `Used by ${usedBy.map((p) => p.title).join(', ')}` : 'Not used by any project'}
                 </p>
                 {item.resourceType === 'image' && (

@@ -22,9 +22,9 @@ function startOfRange(days) {
 function StatTile({ label, value, hint }) {
   return (
     <div className="rounded-lg border border-slate-700/70 p-4">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-admin-muted">{label}</p>
       <p className="mt-2 text-3xl font-bold text-slate-100">{value}</p>
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-admin-muted">{hint}</p>}
     </div>
   );
 }
@@ -36,7 +36,7 @@ function DailyBars({ title, unit, series }) {
     <figure className="rounded-lg border border-slate-700/70 p-4">
       <figcaption className="mb-4 text-sm font-medium text-slate-200">{title}</figcaption>
       <div className="flex gap-2">
-        <div className="flex h-40 flex-col justify-between text-right text-[10px] text-slate-500" aria-hidden="true">
+        <div className="flex h-40 flex-col justify-between text-right text-[10px] text-admin-muted" aria-hidden="true">
           <span>{max}</span>
           <span>0</span>
         </div>
@@ -65,7 +65,7 @@ function DailyBars({ title, unit, series }) {
           </div>
         </div>
       </div>
-      <div className="ml-6 mt-1 flex justify-between text-[10px] text-slate-500" aria-hidden="true">
+      <div className="ml-6 mt-1 flex justify-between text-[10px] text-admin-muted" aria-hidden="true">
         <span>{series[0]?.label}</span>
         <span>{series[series.length - 1]?.label}</span>
       </div>
@@ -157,7 +157,7 @@ export default function AnalyticsAdmin() {
               </button>
             ))}
           </div>
-          <span className="text-xs text-slate-500">Timezone: {TIMEZONE}</span>
+          <span className="text-xs text-admin-muted">Timezone: {TIMEZONE}</span>
         </div>
       </div>
 
@@ -197,7 +197,7 @@ export default function AnalyticsAdmin() {
                 <summary className="cursor-pointer text-slate-400 hover:text-teal-300">Show daily numbers as a table</summary>
                 <div className="mt-3 max-h-72 overflow-auto">
                   <table className="w-full text-left">
-                    <thead className="text-xs uppercase tracking-wide text-slate-500">
+                    <thead className="text-xs uppercase tracking-wide text-admin-muted">
                       <tr>
                         <th className="py-1 pr-4 font-medium">Day</th>
                         <th className="py-1 pr-4 font-medium">Views</th>
@@ -220,7 +220,7 @@ export default function AnalyticsAdmin() {
               <h2 className="mb-2 text-sm font-medium text-slate-200">By project</h2>
               <div className="mb-8 overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="border-b border-slate-700 text-xs uppercase tracking-wide text-slate-500">
+                  <thead className="border-b border-slate-700 text-xs uppercase tracking-wide text-admin-muted">
                     <tr>
                       <th className="py-2 pr-4 font-medium">Project</th>
                       <th className="py-2 pr-4 font-medium">Status</th>
@@ -259,7 +259,7 @@ export default function AnalyticsAdmin() {
             </>
           )}
 
-          <div className="rounded-lg border border-slate-700/70 p-4 text-xs text-slate-500">
+          <div className="rounded-lg border border-slate-700/70 p-4 text-xs text-admin-muted">
             <p className="mb-1 font-medium text-slate-400">How these numbers work</p>
             <ul className="list-disc space-y-1 pl-4">
               <li>A view is counted when a project's detail page opens, at most once per project per browser session every 30 minutes.</li>
