@@ -38,8 +38,13 @@ import { fitImageUrl } from '../lib/images';
 import { Banner, buttonClass, Field, formatDate, inputClass, SegmentedControl, smallButtonClass, StatusBadge, useSession } from './ui';
 import { MediaPicker, UploadButton } from './MediaAdmin';
 
-const errorMessage = (err) =>
-  err instanceof ValidationError ? Object.values(err.fieldErrors).join(' ') : err.message || 'Something went wrong.';
+const errorMessage = (err) => {
+  if (err instanceof ValidationError) return Object.values(err.fieldErrors).join(' ');
+  if (err?.code === 'permission-denied') {
+    return 'Firebase refused this change. If the app was just updated, re-publish firestore.rules in the Firebase console (Firestore → Rules), then try again.';
+  }
+  return err?.message || 'Something went wrong.';
+};
 
 /* ======================================================================
    Project list
