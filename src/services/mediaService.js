@@ -22,12 +22,21 @@ export const MEDIA_LIMITS = {
     accept: 'video/mp4,video/webm,video/quicktime',
     label: 'MP4, WebM or MOV, up to 100 MB',
   },
+  // Resume PDFs (Cloudinary "raw" files). The server also checks the file really is a PDF.
+  raw: {
+    maxBytes: 10 * 1024 * 1024,
+    types: ['application/pdf'],
+    accept: 'application/pdf,.pdf',
+    label: 'PDF, up to 10 MB',
+  },
 };
 
 export function checkFile(file, expectedType) {
-  const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+  const resourceType = file.type.startsWith('video/') ? 'video' : file.type === 'application/pdf' ? 'raw' : 'image';
   const limits = MEDIA_LIMITS[resourceType];
-  if (expectedType && resourceType !== expectedType) throw new Error(`Choose a ${expectedType} file.`);
+  if (expectedType && resourceType !== expectedType) {
+    throw new Error(`Choose ${{ image: 'an image', video: 'a video', raw: 'a PDF' }[expectedType]} file.`);
+  }
   if (!limits.types.includes(file.type)) throw new Error(`Unsupported file. Use ${limits.label}.`);
   if (file.size > limits.maxBytes) throw new Error(`File is too large. Use ${limits.label}.`);
   return resourceType;
@@ -76,7 +85,9 @@ function sendWithProgress(url, form, onProgress) {
   });
 }
 
-export async function uploadFile(file, uid, { expectedType, onProgress } = {}) {
+// Signed upload to Cloudinary, re-checked by the server. Returns { resourceType, publicId, url, bytes, … }.
+// Use uploadFile() for media-library files; this alone is for files kept elsewhere (resumes).
+export async function uploadToCloudinary(file, { expectedType, onProgress } = {}) {
   const resourceType = checkFile(file, expectedType);
   const signed = await callUploadFunction({ action: 'sign', resourceType });
 
@@ -86,7 +97,7 @@ export async function uploadFile(file, uid, { expectedType, onProgress } = {}) {
   form.append('timestamp', signed.timestamp);
   form.append('signature', signed.signature);
   form.append('folder', signed.folder);
-  form.append('allowed_formats', signed.allowed_formats);
+  if (signed.allowed_formats) form.append('allowed_formats', signed.allowed_formats);
   const uploaded = await sendWithProgress(
     `https://api.cloudinary.com/v1_1/${signed.cloudName}/${resourceType}/upload`,
     form,
@@ -94,6 +105,39 @@ export async function uploadFile(file, uid, { expectedType, onProgress } = {}) {
   );
 
   const verified = await callUploadFunction({ action: 'verify', resourceType, publicId: uploaded.public_id });
+  return { resourceType, ...verified };
+}
+
+// Tech-stack skill logo → Cloudinary PortFolio/tech-stack/<variant>. `source` is a File/Blob
+// (e.g. pasted SVG code) or an https URL, which Cloudinary fetches and stores itself, so the
+// logo no longer depends on the original site. Returns { url, publicId }.
+export const LOGO_MAX_BYTES = 1024 * 1024;
+
+export async function uploadLogo(source, variant) {
+  if (typeof source !== 'string' && source.size > LOGO_MAX_BYTES) throw new Error('Logo files must be 1 MB or smaller.');
+  const signed = await callUploadFunction({ action: 'sign', resourceType: 'logo', variant });
+  const form = new FormData();
+  form.append('file', source);
+  form.append('api_key', signed.apiKey);
+  form.append('timestamp', signed.timestamp);
+  form.append('signature', signed.signature);
+  form.append('folder', signed.folder);
+  form.append('allowed_formats', signed.allowed_formats);
+  const uploaded = await sendWithProgress(`https://api.cloudinary.com/v1_1/${signed.cloudName}/image/upload`, form);
+  const verified = await callUploadFunction({ action: 'verify', resourceType: 'logo', publicId: uploaded.public_id });
+  return { url: verified.url, publicId: verified.publicId };
+}
+
+export function deleteLogoFile(publicId) {
+  return callUploadFunction({ action: 'delete', resourceType: 'logo', publicId });
+}
+
+export function deleteCloudinaryFile(resourceType, publicId) {
+  return callUploadFunction({ action: 'delete', resourceType, publicId });
+}
+
+export async function uploadFile(file, uid, { expectedType, onProgress } = {}) {
+  const { resourceType, ...verified } = await uploadToCloudinary(file, { expectedType, onProgress });
   const record = {
     provider: 'cloudinary',
     publicId: verified.publicId,
@@ -135,6 +179,6 @@ export async function deleteMedia(item, projects) {
   if (usedBy.length) {
     throw new Error(`This file is used by ${usedBy.map((p) => `"${p.title}"`).join(', ')}. Replace it there first.`);
   }
-  await callUploadFunction({ action: 'delete', resourceType: item.resourceType, publicId: item.publicId });
+  await deleteCloudinaryFile(item.resourceType, item.publicId);
   await deleteDoc(doc(db, 'media', item.id));
 }

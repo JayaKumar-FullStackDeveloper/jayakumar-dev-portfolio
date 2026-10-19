@@ -7,8 +7,10 @@ import {
   FaChartBar,
   FaChevronDown,
   FaExternalLinkAlt,
+  FaFileAlt,
   FaFolderOpen,
   FaImages,
+  FaLayerGroup,
   FaTags,
 } from 'react-icons/fa';
 import { BrandMark, Icon, MenuButton, OWNER, useSession } from './ui';
@@ -27,6 +29,16 @@ const NAV = [
     to: '/admin/categories',
     label: 'Categories',
     icon: FaTags,
+  },
+  {
+    to: '/admin/tech-stack',
+    label: 'Tech Stack',
+    icon: FaLayerGroup,
+  },
+  {
+    to: '/admin/resume',
+    label: 'Resume',
+    icon: FaFileAlt,
   },
   {
     to: '/admin/media',

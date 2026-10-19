@@ -21,7 +21,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "test:functions": "node --test netlify/tests",
-    "deploy:rules": "npx firebase-tools deploy --only firestore:rules"
+    "deploy:rules": "npx firebase-tools deploy --only firestore:rules",
+    "upload:logos": "node scripts/upload-tech-logos.js"
   },
   "eslintConfig": {
     "extends": [

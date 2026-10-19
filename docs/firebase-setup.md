@@ -207,17 +207,33 @@ is deleted at once.
 | Images | JPG, PNG, WebP, AVIF or GIF, up to 10 MB (no SVG) |
 | Videos | MP4, WebM or MOV, up to 100 MB |
 
-All files go into the `portfolio/` folder, and the function refuses to touch
-anything outside it.
+Every upload goes into your existing **`PortFolio`** folder in Cloudinary, sorted by
+type:
+
+```
+PortFolio/
+├── images/    project covers, post/poster images, Media-library images
+├── videos/    uploaded project videos
+└── resumes/   resume PDFs
+```
+
+Cloudinary creates the subfolders automatically on the first upload of each type.
+Folder names are case-sensitive, so `PortFolio` is not `portfolio`.
+
+The function only verifies or deletes files that Cloudinary itself reports as
+inside `PortFolio`, and refuses anything else. This works whether your Cloudinary
+account uses fixed folders (the folder is part of the file's public ID) or the
+newer dynamic folders (the folder is stored separately).
 
 ### Netlify environment variables (server-side only)
 
 | Variable | Value |
 |---|---|
+| `CLOUDINARY_URL` | **Easiest:** one variable, `cloudinary://<api_key>:<api_secret>@<cloud_name>`, copied from Cloudinary → Settings → API Keys. It replaces the three variables below. |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary dashboard → Product environment → Cloud name |
 | `CLOUDINARY_API_KEY` | Cloudinary → Settings → API Keys |
 | `CLOUDINARY_API_SECRET` | Same screen. **Never** add a `REACT_APP_` prefix to this. |
-| `CLOUDINARY_FOLDER` | Optional; defaults to `portfolio` |
+| `CLOUDINARY_FOLDER` | Optional; defaults to `PortFolio`. Leave it unset to use `PortFolio`. |
 
 The function reads the project ID from `REACT_APP_FIREBASE_PROJECT_ID`, which is
 already set. Make sure all of these apply to Functions and to Deploy Previews.
@@ -249,7 +265,7 @@ settings or in `.env.local`.
 - non-admins are refused
 - the secret never appears in a response
 - oversized uploads are deleted
-- files outside `portfolio/` are refused
+- files outside `PortFolio/` are refused, in both folder modes
 
 ### Still pending
 
@@ -269,3 +285,48 @@ settings or in `.env.local`.
   browser. Cursor pagination isn't built yet.
 - **Unsaved-change warning:** it covers closing or reloading the tab and the
   Cancel button. It doesn't cover the admin nav links.
+
+## Tech Stack & Skills
+
+Managed at `/admin/tech-stack` (categories and skills on one page). Data lives in `techCategories/{slug}` and `techSkills/{id}`; `techStackMeta/seed` records that the starter content was created.
+
+- Re-publish the rules after pulling this change: `npm run deploy:rules`.
+- The first time an admin opens `/admin/tech-stack` with no data, the starter categories (Development, AI Design, Tools) and skills are created once. Later visits never recreate or overwrite them, even if everything is deleted.
+- Public reads only return `isActive == true` categories and skills; all writes require an active admin.
+- Skills store an icon key (see `src/components/techIcon.jsx`) and an optional https logo URL, which is rendered in white.
+
+## Resume
+
+Manage it in **Admin → Resume**. The portfolio's **View Full Resume** link, under the
+About section, opens the resume that is currently published. When none is
+published, the link is hidden.
+
+**What you can do:**
+
+- Upload PDF versions, up to 10 MB each.
+- Rename them.
+- Preview them.
+- Publish or unpublish one.
+- Delete the ones that aren't published.
+
+**Only one resume can be published.** The public site reads a single document,
+`siteSettings/resume`, that points at the live resume. Publishing another resume
+replaces that pointer. The security rules make sure the pointer names an existing
+resume with the same file URL, and they refuse to delete the published resume. The
+`resumes` collection itself is visible only to admins.
+
+**Files:** PDFs are stored in Cloudinary as raw files under `PortFolio/resumes/`,
+through the same signed Netlify Function as other uploads. After each upload the
+function checks that the file name ends in `.pdf`, that it's 10 MB or smaller, and
+that the file really starts with `%PDF-`. A file that fails any of these is
+deleted.
+
+**Cloudinary setting:** free Cloudinary accounts may block PDF delivery by default.
+If an upload is rejected with "allow delivery of PDF files", go to Cloudinary →
+**Settings → Security**, turn on **Allow delivery of PDF and ZIP files**, and upload
+again.
+
+**Rules:** re-publish `firestore.rules` after this update, because it adds the
+`resumes` and `siteSettings/resume` rules.
+- Skill logos have two versions, each a file in Cloudinary: `PortFolio/tech-stack/default` (white, at rest) and `PortFolio/tech-stack/hover` (original colours). Firestore stores `logoDefault` / `logoHover` = `{ url, publicId, source: 'builtin' | 'custom', iconKey }`. Empty custom fields use the built-in logo, which is generated as SVG and uploaded on save. "Upload logos to cloud storage" on the admin page uploads any skill that has no files yet. Uploads go through the Netlify function, so they work on Netlify or `netlify dev`, not plain `npm start`.
+- Built-in logos are shared Cloudinary files (`PortFolio/tech-stack/default/default-<key>.svg` and `.../hover/hover-<key>.svg`), listed in `src/data/techLogoAssets.json`. After adding or changing a built-in logo in `src/components/techIcon.jsx`, run `npm run upload:logos` (needs `CLOUDINARY_URL` in `.env.local`); it overwrites the same files and rewrites the manifest. Add `--dry <folder>` to only write the SVGs locally.

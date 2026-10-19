@@ -221,3 +221,53 @@ export function validateCategory(category) {
   if (!Number.isFinite(Number(category.sortOrder))) errors.sortOrder = 'Sort order must be a number.';
   return errors;
 }
+
+/* ---------- Tech Stack & Skills ---------- */
+
+export const TECH_LIMITS = { name: 60, svg: 20000 };
+
+// The skill form takes one "logo" input: an https:// image URL or pasted <svg> markup.
+// Returns { iconUrl, iconSvg } or { error }. SVGs are only ever shown through <img>, which
+// doesn't run scripts, but markup with scripts or event handlers is still rejected.
+export function parseLogoInput(value) {
+  const text = String(value || '').trim();
+  if (!text) return { iconUrl: '', iconSvg: '' };
+  if (/^<svg[\s>]/i.test(text)) {
+    if (text.length > TECH_LIMITS.svg) return { error: `Keep the SVG under ${TECH_LIMITS.svg / 1000} KB.` };
+    if (!/<\/svg>\s*$/i.test(text)) return { error: 'The SVG looks incomplete. Paste everything from <svg to </svg>.' };
+    if (/<script|<foreignObject|\son[a-z]+\s*=|javascript:/i.test(text)) {
+      return { error: 'This SVG contains scripts or event handlers. Use a plain SVG.' };
+    }
+    return { iconUrl: '', iconSvg: text };
+  }
+  if (!isSafeUrl(text)) return { error: 'Paste an https:// image URL or SVG code that starts with <svg.' };
+  return { iconUrl: text, iconSvg: '' };
+}
+const ICON_KEY = /^[a-z0-9-]{0,40}$/;
+
+export function validateTechCategory(category) {
+  const errors = {};
+  const name = (category.name || '').trim();
+  if (!name) errors.name = 'Name is required.';
+  else if (name.length > TECH_LIMITS.name) errors.name = `Keep the name under ${TECH_LIMITS.name} characters.`;
+  else if (!slugify(name)) errors.name = 'Use at least one letter or number.';
+  if (!ICON_KEY.test(category.icon || '')) errors.icon = 'Pick an icon from the list.';
+  if (!Number.isFinite(Number(category.sortOrder))) errors.sortOrder = 'Sort order must be a number.';
+  return errors;
+}
+
+export function validateTechSkill(skill) {
+  const errors = {};
+  const name = (skill.name || '').trim();
+  if (!name) errors.name = 'Name is required.';
+  else if (name.length > TECH_LIMITS.name) errors.name = `Keep the name under ${TECH_LIMITS.name} characters.`;
+  else if (!slugify(name)) errors.name = 'Use at least one letter or number.';
+  if (!ICON_KEY.test(skill.icon || '')) errors.icon = 'Pick an icon from the list.';
+  const logoDefault = parseLogoInput(skill.logoDefault);
+  if (logoDefault.error) errors.logoDefault = logoDefault.error;
+  const logoHover = parseLogoInput(skill.logoHover);
+  if (logoHover.error) errors.logoHover = logoHover.error;
+  if (!skill.categoryId) errors.categoryId = 'Choose a category.';
+  if (!Number.isFinite(Number(skill.sortOrder))) errors.sortOrder = 'Sort order must be a number.';
+  return errors;
+}

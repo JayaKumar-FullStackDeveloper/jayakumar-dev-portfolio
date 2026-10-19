@@ -8,6 +8,8 @@ import { ProjectEditor, ProjectsList } from './ProjectsAdmin';
 import CategoriesAdmin from './CategoriesAdmin';
 import AnalyticsAdmin from './AnalyticsAdmin';
 import MediaAdmin from './MediaAdmin';
+import TechStackAdmin from './TechStackAdmin';
+import ResumeAdmin from './ResumeAdmin';
 import AdminShell from './AdminShell';
 import './admin.css';
 
@@ -272,6 +274,8 @@ export default function AdminApp() {
               <Route path="projects/new" element={<ProjectEditor />} />
               <Route path="projects/:id" element={<ProjectEditor />} />
               <Route path="categories" element={<CategoriesAdmin />} />
+              <Route path="tech-stack" element={<TechStackAdmin />} />
+              <Route path="resume" element={<ResumeAdmin />} />
               <Route path="media" element={<MediaAdmin />} />
               <Route path="analytics" element={<AnalyticsAdmin />} />
             </Route>

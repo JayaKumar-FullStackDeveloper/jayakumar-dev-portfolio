@@ -127,6 +127,131 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ---------- tech stack & skills (public reads active items only) ----------
+    function isIconKey(value) {
+      return value is string && value.matches('[a-z0-9-]{0,40}');
+    }
+
+    function validTechCategory(d, categoryId) {
+      return d.keys().hasOnly(["name", "slug", "icon", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.keys().hasAll(["name", "slug", "icon", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && isSlug(d.slug) && d.slug == categoryId
+        && isIconKey(d.icon)
+        && d.sortOrder is number
+        && d.isActive is bool
+        && d.updatedAt == request.time;
+    }
+
+    match /techCategories/{categoryId} {
+      allow get, list: if resource.data.isActive == true || isAdmin();
+      allow create: if isAdmin()
+        && validTechCategory(request.resource.data, categoryId)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+        && validTechCategory(request.resource.data, categoryId)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    // Logo file in Cloudinary: { url, publicId, source, iconKey } or null.
+    function validLogo(logo) {
+      return logo == null || (
+        logo is map
+        && logo.keys().hasOnly(["url", "publicId", "source", "iconKey"])
+        && logo.keys().hasAll(["url", "publicId", "source"])
+        && isHttpsUrl(logo.url) && logo.url.matches('https://res[.]cloudinary[.]com/.*')
+        && logo.publicId is string && logo.publicId.size() <= 255
+        && logo.source in ["builtin", "custom"]
+        && (!("iconKey" in logo) || isIconKey(logo.iconKey))
+      );
+    }
+
+    function validTechSkill(d) {
+      return d.keys().hasOnly(["categoryId", "name", "slug", "icon", "iconUrl", "iconSvg", "logoDefault", "logoHover", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.keys().hasAll(["categoryId", "name", "slug", "icon", "iconUrl", "sortOrder", "isActive", "createdAt", "updatedAt"])
+        && d.categoryId is string
+        && existsAfter(/databases/$(database)/documents/techCategories/$(d.categoryId))
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && isSlug(d.slug)
+        && isIconKey(d.icon)
+        && d.iconUrl is string && (d.iconUrl == "" || isHttpsUrl(d.iconUrl))
+        && (!("iconSvg" in d) || (d.iconSvg is string && d.iconSvg.size() <= 20000))
+        && (!("logoDefault" in d) || validLogo(d.logoDefault))
+        && (!("logoHover" in d) || validLogo(d.logoHover))
+        && d.sortOrder is number
+        && d.isActive is bool
+        && d.updatedAt == request.time;
+    }
+
+    match /techSkills/{skillId} {
+      allow get, list: if resource.data.isActive == true || isAdmin();
+      allow create: if isAdmin()
+        && validTechSkill(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+        && validTechSkill(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    // Marks that the starter tech stack was created, so seeding never repeats.
+    match /techStackMeta/{docId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && docId == "seed"
+        && request.resource.data.keys().hasOnly(["seededAt", "seededBy"])
+        && request.resource.data.seededBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // ---------- resumes: PDFs in Cloudinary; exactly one can be published ----------
+    function resumePointer() {
+      return /databases/$(database)/documents/siteSettings/resume;
+    }
+
+    function validResume(d) {
+      return d.keys().hasOnly(["title", "fileName", "url", "publicId", "sizeBytes", "createdAt", "updatedAt", "createdBy", "updatedBy"])
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 120
+        && d.fileName is string && d.fileName.size() <= 200
+        && isHttpsUrl(d.url) && d.url.matches('https://res[.]cloudinary[.]com/.*')
+        && d.publicId is string && d.publicId.size() <= 255
+        && d.sizeBytes is number
+        && d.updatedAt == request.time
+        && d.updatedBy == request.auth.uid;
+    }
+
+    match /resumes/{resumeId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && validResume(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+      // Only the name can change; the file stays the same.
+      allow update: if isAdmin()
+        && validResume(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["title", "updatedAt", "updatedBy"]);
+      // The published resume can't be deleted: unpublish it or publish another first.
+      allow delete: if isAdmin()
+        && (!exists(resumePointer()) || get(resumePointer()).data.resumeId != resumeId);
+    }
+
+    // The single published resume. Publishing another resume replaces this document,
+    // so two resumes can never be published at once.
+    match /siteSettings/resume {
+      allow get: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(["resumeId", "title", "url", "fileName", "updatedAt", "updatedBy"])
+        && request.resource.data.resumeId is string
+        && exists(/databases/$(database)/documents/resumes/$(request.resource.data.resumeId))
+        && request.resource.data.url == get(/databases/$(database)/documents/resumes/$(request.resource.data.resumeId)).data.url
+        && request.resource.data.title is string && request.resource.data.title.size() <= 120
+        && request.resource.data.fileName is string && request.resource.data.fileName.size() <= 200
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
     // ---------- audit trail: append-only, admins only ----------
     match /auditEvents/{eventId} {
       allow read: if isAdmin();
@@ -134,7 +259,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(["actor", "action", "entityType", "entityId", "createdAt"])
         && request.resource.data.actor == request.auth.uid
         && request.resource.data.action is string && request.resource.data.action.size() <= 40
-        && request.resource.data.entityType in ["project", "category"]
+        && request.resource.data.entityType in ["project", "category", "tech-category", "tech-skill", "resume"]
         && request.resource.data.entityId is string && request.resource.data.entityId.size() <= 128
         && request.resource.data.createdAt == request.time;
       allow update, delete: if false;

@@ -23,7 +23,10 @@ test('checkFile accepts supported files and rejects others before upload', () =>
   expect(() => checkFile(file('image/svg+xml', 1000))).toThrow(/Unsupported/);
   expect(() => checkFile(file('application/x-msdownload', 1000))).toThrow(/Unsupported/);
   expect(() => checkFile(file('image/png', 11 * 1024 * 1024))).toThrow(/too large/);
-  expect(() => checkFile(file('video/mp4', 1000), 'image')).toThrow(/Choose a image file/);
+  expect(() => checkFile(file('video/mp4', 1000), 'image')).toThrow(/Choose an image file/);
+  expect(checkFile(file('application/pdf', 1000), 'raw')).toBe('raw');
+  expect(() => checkFile(file('image/png', 1000), 'raw')).toThrow(/Choose a PDF file/);
+  expect(() => checkFile(file('application/pdf', 11 * 1024 * 1024), 'raw')).toThrow(/too large/);
 });
 
 test('findMediaUsage finds cover and video references', () => {

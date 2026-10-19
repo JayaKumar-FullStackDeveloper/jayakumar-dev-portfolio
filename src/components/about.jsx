@@ -1,4 +1,5 @@
 import React from 'react'
+import ResumeLink from './resumeLink'
 
 function About() {
   return (
@@ -18,6 +19,7 @@ function About() {
       <p className='text-justify lg:text-[15px] text-base font-medium leading-5.5 pb-2 lg:pb-6'>
         With hands-on experience in the MERN stack (MongoDB, Express.js, React.js, and Node.js), I bridge the gap between design and development, ensuring technical feasibility and seamless implementation. I'm excited to discuss how my skills and experiences align with the role, and I look forward to contributing to your team.
       </p>
+      <ResumeLink />
     </div>
   )
 }

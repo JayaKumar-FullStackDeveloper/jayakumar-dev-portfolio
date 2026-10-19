@@ -1,0 +1,51 @@
+/* Tech logos: two stacked versions per logo. White at rest; inside a `.ti-host` element
+   (card or row) hovering cross-fades to the original version with a small lift. */
+
+.ti-stack {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.ti-stack > .ti-rest,
+.ti-stack > .ti-hover {
+  grid-area: 1 / 1;
+  display: flex;
+  transition: opacity 0.3s ease;
+}
+
+.ti-stack > .ti-hover {
+  opacity: 0;
+}
+
+.ti-host:hover .ti-stack > .ti-rest,
+.ti-host:focus-within .ti-stack > .ti-rest {
+  opacity: 0;
+}
+
+.ti-host:hover .ti-stack > .ti-hover,
+.ti-host:focus-within .ti-stack > .ti-hover {
+  opacity: 1;
+}
+
+.ti-host:hover .ti-stack,
+.ti-host:focus-within .ti-stack {
+  transform: translateY(-2px) scale(1.12);
+}
+
+/* Any image shown in white (a custom logo used for the rest state). */
+.ti-white {
+  filter: brightness(0) invert(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ti-stack {
+    transition: none;
+  }
+
+  .ti-host:hover .ti-stack,
+  .ti-host:focus-within .ti-stack {
+    transform: none;
+  }
+}

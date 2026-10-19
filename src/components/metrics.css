@@ -58,15 +58,17 @@
 
 .mx-list {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Items size to their content and share the leftover width equally, so the
+   space between each metric (and each divider) is the same. */
 .mx-item {
   position: relative;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,7 +120,7 @@
 
 .mx-value {
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-  font-size: clamp(20px, 5.4cqi, 40px);
+  font-size: clamp(16px, 4.6cqi, 36px);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -170,7 +172,7 @@
   }
 
   .mx-value {
-    font-size: clamp(20px, 6cqi, 28px);
+    font-size: clamp(16px, 5cqi, 24px);
   }
 
   .mx-label {
@@ -182,6 +184,7 @@
 /* Narrow: 2 × 2 grid with horizontal and vertical dividers. */
 @container mx (max-width: 380px) {
   .mx-list {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
